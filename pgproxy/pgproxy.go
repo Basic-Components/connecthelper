@@ -2,7 +2,6 @@ package pgproxy
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"net/url"
 	"strconv"
@@ -80,101 +79,125 @@ func parseDBURL(address string) (*pg.Options, error) {
 		for key, value := range v {
 			switch strings.ToLower(key) {
 			case "maxretries":
-				maxretries, err := strconv.Atoi(value[0])
-				if err != nil {
-					log.Fatal(err)
-				} else {
-					result.MaxRetries = maxretries
+				{
+					maxretries, err := strconv.Atoi(value[0])
+					if err != nil {
+						log.Fatal(err)
+					} else {
+						result.MaxRetries = maxretries
+					}
 				}
 			case "retrystatementtimeout":
-				bv := strings.ToLower(value[0])
-				switch bv {
-				case "true":
-					result.RetryStatementTimeout = true
-				case "false":
-					result.RetryStatementTimeout = false
-				default:
-					log.Fatal("unknown value for RetryStatementTimeout")
+				{
+					bv := strings.ToLower(value[0])
+					switch bv {
+					case "true":
+						result.RetryStatementTimeout = true
+					case "false":
+						result.RetryStatementTimeout = false
+					default:
+						log.Fatal("unknown value for RetryStatementTimeout")
+					}
 				}
 			case "minretrybackoff":
-				number, err := strconv.Atoi(value[0])
-				if err != nil {
-					log.Fatal(err)
-				} else {
-					result.MinRetryBackoff = time.Duration(number) * time.Second
+				{
+					number, err := strconv.Atoi(value[0])
+					if err != nil {
+						log.Fatal(err)
+					} else {
+						result.MinRetryBackoff = time.Duration(number) * time.Second
+					}
 				}
 			case "maxretrybackoff":
-				number, err := strconv.Atoi(value[0])
-				if err != nil {
-					log.Fatal(err)
-				} else {
-					result.MaxRetryBackoff = time.Duration(number) * time.Second
+				{
+					number, err := strconv.Atoi(value[0])
+					if err != nil {
+						log.Fatal(err)
+					} else {
+						result.MaxRetryBackoff = time.Duration(number) * time.Second
+					}
 				}
 			case "dialtimeout":
-				number, err := strconv.Atoi(value[0])
-				if err != nil {
-					log.Fatal(err)
-				} else {
-					result.DialTimeout = time.Duration(number) * time.Second
+				{
+					number, err := strconv.Atoi(value[0])
+					if err != nil {
+						log.Fatal(err)
+					} else {
+						result.DialTimeout = time.Duration(number) * time.Second
+					}
 				}
 			case "readtimeout":
-				number, err := strconv.Atoi(value[0])
-				if err != nil {
-					log.Fatal(err)
-				} else {
-					result.ReadTimeout = time.Duration(number) * time.Second
+				{
+					number, err := strconv.Atoi(value[0])
+					if err != nil {
+						log.Fatal(err)
+					} else {
+						result.ReadTimeout = time.Duration(number) * time.Second
+					}
 				}
 			case "writetimeout":
-				number, err := strconv.Atoi(value[0])
-				if err != nil {
-					log.Fatal(err)
-				} else {
-					result.WriteTimeout = time.Duration(number) * time.Second
+				{
+					number, err := strconv.Atoi(value[0])
+					if err != nil {
+						log.Fatal(err)
+					} else {
+						result.WriteTimeout = time.Duration(number) * time.Second
+					}
 				}
 			case "maxconnage":
-				number, err := strconv.Atoi(value[0])
-				if err != nil {
-					log.Fatal(err)
-				} else {
-					result.MaxConnAge = time.Duration(number) * time.Second
+				{
+					number, err := strconv.Atoi(value[0])
+					if err != nil {
+						log.Fatal(err)
+					} else {
+						result.MaxConnAge = time.Duration(number) * time.Second
+					}
 				}
 			case "pooltimeout":
-				number, err := strconv.Atoi(value[0])
-				if err != nil {
-					log.Fatal(err)
-				} else {
-					result.PoolTimeout = time.Duration(number) * time.Second
+				{
+					number, err := strconv.Atoi(value[0])
+					if err != nil {
+						log.Fatal(err)
+					} else {
+						result.PoolTimeout = time.Duration(number) * time.Second
+					}
 				}
 			case "idletimeout":
-				number, err := strconv.Atoi(value[0])
-				if err != nil {
-					log.Fatal(err)
-				} else {
-					result.IdleTimeout = time.Duration(number) * time.Second
+				{
+					number, err := strconv.Atoi(value[0])
+					if err != nil {
+						log.Fatal(err)
+					} else {
+						result.IdleTimeout = time.Duration(number) * time.Second
+					}
 				}
 			case "idlecheckfrequency":
-				number, err := strconv.Atoi(value[0])
-				if err != nil {
-					log.Fatal(err)
-				} else {
-					result.IdleCheckFrequency = time.Duration(number) * time.Second
+				{
+					number, err := strconv.Atoi(value[0])
+					if err != nil {
+						log.Fatal(err)
+					} else {
+						result.IdleCheckFrequency = time.Duration(number) * time.Second
+					}
 				}
 			case "PoolSize":
-				number, err := strconv.Atoi(value[0])
-				if err != nil {
-					log.Fatal(err)
-				} else {
-					result.PoolSize = number
+				{
+					number, err := strconv.Atoi(value[0])
+					if err != nil {
+						log.Fatal(err)
+					} else {
+						result.PoolSize = number
+					}
 				}
 			case "MinIdleConns":
-				number, err := strconv.Atoi(value[0])
-				if err != nil {
-					log.Fatal(err)
-				} else {
-					result.MinIdleConns = number
+				{
+					number, err := strconv.Atoi(value[0])
+					if err != nil {
+						log.Fatal(err)
+					} else {
+						result.MinIdleConns = number
+					}
 				}
-			default: //default case
-				fmt.Println("incorrect finger number")
 			}
 		}
 
