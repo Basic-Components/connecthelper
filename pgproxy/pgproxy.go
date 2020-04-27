@@ -200,7 +200,6 @@ func parseDBURL(address string) (*pg.Options, error) {
 				}
 			}
 		}
-
 	}
 	return result, nil
 }
@@ -215,7 +214,12 @@ func (proxy *dbProxy) Init(options *pg.Options) error {
 	proxy.Cli = db
 	for _, cb := range proxy.callBacks {
 		//go cb(proxy.Cli)
-		cb(proxy.Cli)
+		err := cb(proxy.Cli)
+		if err != nil {
+			log.Println("regist callback get error", err)
+		} else {
+			log.Println("regist callback done")
+		}
 	}
 	proxy.Ok = true
 	return nil
