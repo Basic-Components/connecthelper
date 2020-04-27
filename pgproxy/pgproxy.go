@@ -184,7 +184,7 @@ func parseDBURL(address string) (*pg.Options, error) {
 
 // Init 使用配置给代理赋值客户端实例
 func (proxy *dbProxy) Init(options *pg.Options) error {
-	if !proxy.Ok {
+	if proxy.Ok {
 		return ErrProxyAlreadyInited
 	}
 	proxy.Options = options
