@@ -247,5 +247,5 @@ func (proxy *dbProxy) Regist(cb dbProxyCallback) {
 	proxy.callBacks = append(proxy.callBacks, cb)
 }
 
-// DB 默认的etcd代理对象
+// DB 默认的pg代理对象
 var DB = NewDBProxy()
