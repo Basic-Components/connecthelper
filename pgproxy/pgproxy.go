@@ -31,8 +31,8 @@ type dbProxy struct {
 	callBacks []dbProxyCallback
 }
 
-// NewDBProxy 创建一个新的数据库客户端代理
-func NewDBProxy() *dbProxy {
+// New 创建一个新的数据库客户端代理
+func New() *dbProxy {
 	proxy := new(dbProxy)
 	proxy.Ok = false
 	return proxy
@@ -248,4 +248,4 @@ func (proxy *dbProxy) Regist(cb dbProxyCallback) {
 }
 
 // DB 默认的pg代理对象
-var DB = NewDBProxy()
+var DB = New()
