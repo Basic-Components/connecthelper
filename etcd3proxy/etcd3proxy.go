@@ -1,217 +1,44 @@
-package pgproxy
+package etcd3proxy
 
 import (
-	"errors"
 	"log"
-	"net/url"
-	"strconv"
-	"strings"
-	"time"
 
-	pg "github.com/go-pg/pg/v9"
+	"github.com/Basic-Components/connectproxy/errs"
+	"go.etcd.io/etcd/clientv3"
 )
 
-// ErrProxyNotInited 代理未初始化错误
-var ErrProxyNotInited = errors.New("proxy not inited yet")
+// etcd3ProxyCallback etcdv3操作的回调函数
+type etcd3ProxyCallback func(cli *clientv3.Client) error
 
-// ErrProxyAlreadyInited 代理已经初始化错误
-var ErrProxyAlreadyInited = errors.New("proxy already inited yet")
-
-// ErrURLSchemaWrong 数据库代理解析配置URL时Schema错误
-var ErrURLSchemaWrong = errors.New("schema wrong")
-
-// DBProxyCallback 数据库操作的回调函数
-type dbProxyCallback func(dbCli *pg.DB) error
-
-// DBProxy 数据库客户端的代理
-type dbProxy struct {
+// etcd3Proxy etcd3客户端的代理
+type etcd3Proxy struct {
 	Ok        bool
-	Options   *pg.Options
-	Cli       *pg.DB
-	callBacks []dbProxyCallback
+	Options   *clientv3.Config
+	Cli       *clientv3.Client
+	callBacks []etcd3ProxyCallback
 }
 
 // New 创建一个新的数据库客户端代理
-func New() *dbProxy {
-	proxy := new(dbProxy)
+func New() *etcd3Proxy {
+	proxy := new(etcd3Proxy)
 	proxy.Ok = false
 	return proxy
 }
 
 // Close 关闭pg
-func (proxy *dbProxy) Close() {
+func (proxy *etcd3Proxy) Close() {
 	if proxy.Ok {
 		proxy.Cli.Close()
 	}
 }
 
-// 将url解析为pg的初始化参数
-func parseDBURL(address string) (*pg.Options, error) {
-	result := &pg.Options{}
-	u, err := url.Parse(address)
-	if err != nil {
-		return result, err
-	}
-	if u.Scheme != "postgres" {
-		return result, ErrURLSchemaWrong
-	}
-
-	user := u.User.Username()
-	if user == "" {
-		result.User = "postgres"
-	} else {
-		result.User = user
-	}
-	password, has := u.User.Password()
-	if has == false {
-		result.Password = "postgres"
-	} else {
-		result.Password = password
-	}
-	result.Addr = u.Host
-	result.Database = u.Path[1:]
-	if u.RawQuery != "" {
-		v, err := url.ParseQuery(u.RawQuery)
-		if err != nil {
-			log.Fatal(err)
-			return result, nil
-		}
-		for key, value := range v {
-			switch strings.ToLower(key) {
-			case "maxretries":
-				{
-					maxretries, err := strconv.Atoi(value[0])
-					if err != nil {
-						log.Fatal(err)
-					} else {
-						result.MaxRetries = maxretries
-					}
-				}
-			case "retrystatementtimeout":
-				{
-					bv := strings.ToLower(value[0])
-					switch bv {
-					case "true":
-						result.RetryStatementTimeout = true
-					case "false":
-						result.RetryStatementTimeout = false
-					default:
-						log.Fatal("unknown value for RetryStatementTimeout")
-					}
-				}
-			case "minretrybackoff":
-				{
-					number, err := strconv.Atoi(value[0])
-					if err != nil {
-						log.Fatal(err)
-					} else {
-						result.MinRetryBackoff = time.Duration(number) * time.Second
-					}
-				}
-			case "maxretrybackoff":
-				{
-					number, err := strconv.Atoi(value[0])
-					if err != nil {
-						log.Fatal(err)
-					} else {
-						result.MaxRetryBackoff = time.Duration(number) * time.Second
-					}
-				}
-			case "dialtimeout":
-				{
-					number, err := strconv.Atoi(value[0])
-					if err != nil {
-						log.Fatal(err)
-					} else {
-						result.DialTimeout = time.Duration(number) * time.Second
-					}
-				}
-			case "readtimeout":
-				{
-					number, err := strconv.Atoi(value[0])
-					if err != nil {
-						log.Fatal(err)
-					} else {
-						result.ReadTimeout = time.Duration(number) * time.Second
-					}
-				}
-			case "writetimeout":
-				{
-					number, err := strconv.Atoi(value[0])
-					if err != nil {
-						log.Fatal(err)
-					} else {
-						result.WriteTimeout = time.Duration(number) * time.Second
-					}
-				}
-			case "maxconnage":
-				{
-					number, err := strconv.Atoi(value[0])
-					if err != nil {
-						log.Fatal(err)
-					} else {
-						result.MaxConnAge = time.Duration(number) * time.Second
-					}
-				}
-			case "pooltimeout":
-				{
-					number, err := strconv.Atoi(value[0])
-					if err != nil {
-						log.Fatal(err)
-					} else {
-						result.PoolTimeout = time.Duration(number) * time.Second
-					}
-				}
-			case "idletimeout":
-				{
-					number, err := strconv.Atoi(value[0])
-					if err != nil {
-						log.Fatal(err)
-					} else {
-						result.IdleTimeout = time.Duration(number) * time.Second
-					}
-				}
-			case "idlecheckfrequency":
-				{
-					number, err := strconv.Atoi(value[0])
-					if err != nil {
-						log.Fatal(err)
-					} else {
-						result.IdleCheckFrequency = time.Duration(number) * time.Second
-					}
-				}
-			case "PoolSize":
-				{
-					number, err := strconv.Atoi(value[0])
-					if err != nil {
-						log.Fatal(err)
-					} else {
-						result.PoolSize = number
-					}
-				}
-			case "MinIdleConns":
-				{
-					number, err := strconv.Atoi(value[0])
-					if err != nil {
-						log.Fatal(err)
-					} else {
-						result.MinIdleConns = number
-					}
-				}
-			}
-		}
-	}
-	return result, nil
-}
-
 // Init 给代理赋值客户端实例
-func (proxy *dbProxy) Init(db *pg.DB) error {
+func (proxy *etcd3Proxy) Init(cli *clientv3.Client) error {
 	if proxy.Ok {
-		return ErrProxyAlreadyInited
+		return errs.ErrProxyAlreadyInited
 	}
-	proxy.Cli = db
+	proxy.Cli = cli
 	for _, cb := range proxy.callBacks {
-		//go cb(proxy.Cli)
 		err := cb(proxy.Cli)
 		if err != nil {
 			log.Println("regist callback get error", err)
@@ -224,33 +51,19 @@ func (proxy *dbProxy) Init(db *pg.DB) error {
 }
 
 // InitFromOptions 从配置条件初始化代理对象
-func (proxy *dbProxy) InitFromOptions(options *pg.Options) error {
+func (proxy *etcd3Proxy) InitFromOptions(options *clientv3.Config) error {
 	proxy.Options = options
-	db := pg.Connect(options)
-	return proxy.Init(db)
-}
-
-// InitFromURL 使用配置给代理赋值客户端实例
-func (proxy *dbProxy) InitFromURL(address string) error {
-	options, err := parseDBURL(address)
+	cli, err := clientv3.New(*options)
 	if err != nil {
 		return err
 	}
-	err = proxy.InitFromOptions(options)
-	return err
-}
-
-func (proxy *dbProxy) Exec(query interface{}, params ...interface{}) (res pg.Result, err error) {
-	if !proxy.Ok {
-		return nil, ErrProxyNotInited
-	}
-	return proxy.Cli.Exec(query, params)
+	return proxy.Init(cli)
 }
 
 // Regist 注册回调函数,在init执行后执行回调函数
-func (proxy *dbProxy) Regist(cb dbProxyCallback) {
+func (proxy *etcd3Proxy) Regist(cb etcd3ProxyCallback) {
 	proxy.callBacks = append(proxy.callBacks, cb)
 }
 
-// DB 默认的pg代理对象
-var DB = New()
+// Etcd 默认的pg代理对象
+var Etcd = New()

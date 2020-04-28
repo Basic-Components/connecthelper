@@ -9,3 +9,4 @@
 子模块|代理的包|默认的代理对象
 ---|---|---
 `pgproxy`|`github.com/go-pg/pg/v9`|`DB`
+`etcd3proxy`|`go.etcd.io/etcd/clientv3`|`Etcd`
