@@ -1,24 +1,50 @@
 package pgproxy
 
-import "testing"
+import (
+	"fmt"
+	"testing"
 
-func Test_dbProxy_InitFromURL(t *testing.T) {
-	type args struct {
-		address string
+	pg "github.com/go-pg/pg/v9"
+	"github.com/stretchr/testify/assert"
+)
+
+func Test_dbProxy(t *testing.T) {
+	db := New()
+	db.InitFromURL("postgres://postgres:postgres@localhost:5432/test")
+	defer db.Close()
+	var s1 string
+	_, err := db.Cli.QueryOne(pg.Scan(&s1), `SELECT 1`)
+	if err != nil {
+		fmt.Println("PostgreSQL is down")
 	}
-	tests := []struct {
-		name    string
-		proxy   *dbProxy
-		args    args
-		wantErr bool
-	}{
-		// TODO: Add test cases.
+	assert.Equal(t, "1", s1)
+
+}
+
+func Test_dbProxy_Regist(t *testing.T) {
+	db := New()
+	db.Regist(func(dbCli *pg.DB) error {
+		var s1 string
+		_, err := dbCli.QueryOne(pg.Scan(&s1), `SELECT 1`)
+		if err != nil {
+			fmt.Println("PostgreSQL is down")
+			return err
+		}
+		assert.Equal(t, "1", s1)
+		return nil
+	})
+	db.InitFromURL("postgres://postgres:postgres@localhost:5432/test")
+	defer db.Close()
+}
+
+func Test_dbProxy_Exec(t *testing.T) {
+	db := New()
+	db.InitFromURL("postgres://postgres:postgres@localhost:5432/test")
+	defer db.Close()
+	res, err := db.Exec("SELECT 1")
+	if err != nil {
+		t.Fatalf("get err %v", err)
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := tt.proxy.InitFromURL(tt.args.address); (err != nil) != tt.wantErr {
-				t.Errorf("dbProxy.InitFromURL() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
+	assert.Equal(t, 1, res.RowsReturned())
+
 }
