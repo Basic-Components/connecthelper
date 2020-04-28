@@ -10,3 +10,4 @@
 ---|---|---
 `pgproxy`|`github.com/go-pg/pg/v9`|`DB`
 `etcd3proxy`|`go.etcd.io/etcd/clientv3`|`Etcd`
+`redisproxy`|`github.com/go-redis/redis`|`Redis`
