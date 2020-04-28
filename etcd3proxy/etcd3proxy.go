@@ -1,6 +1,7 @@
 package pgproxy
 
 import (
+	"errors"
 	"log"
 	"net/url"
 	"strconv"
@@ -8,9 +9,16 @@ import (
 	"time"
 
 	pg "github.com/go-pg/pg/v9"
-
-	"github.com/Basic-Components/connectproxy/errs"
 )
+
+// ErrProxyNotInited 代理未初始化错误
+var ErrProxyNotInited = errors.New("proxy not inited yet")
+
+// ErrProxyAlreadyInited 代理已经初始化错误
+var ErrProxyAlreadyInited = errors.New("proxy already inited yet")
+
+// ErrURLSchemaWrong 数据库代理解析配置URL时Schema错误
+var ErrURLSchemaWrong = errors.New("schema wrong")
 
 // DBProxyCallback 数据库操作的回调函数
 type dbProxyCallback func(dbCli *pg.DB) error
@@ -45,7 +53,7 @@ func parseDBURL(address string) (*pg.Options, error) {
 		return result, err
 	}
 	if u.Scheme != "postgres" {
-		return result, errs.ErrURLSchemaWrong
+		return result, ErrURLSchemaWrong
 	}
 
 	user := u.User.Username()
@@ -199,7 +207,7 @@ func parseDBURL(address string) (*pg.Options, error) {
 // Init 给代理赋值客户端实例
 func (proxy *dbProxy) Init(db *pg.DB) error {
 	if proxy.Ok {
-		return errs.ErrProxyAlreadyInited
+		return ErrProxyAlreadyInited
 	}
 	proxy.Cli = db
 	for _, cb := range proxy.callBacks {
@@ -234,7 +242,7 @@ func (proxy *dbProxy) InitFromURL(address string) error {
 
 func (proxy *dbProxy) Exec(query interface{}, params ...interface{}) (res pg.Result, err error) {
 	if !proxy.Ok {
-		return nil, errs.ErrProxyNotInited
+		return nil, ErrProxyNotInited
 	}
 	return proxy.Cli.Exec(query, params)
 }
