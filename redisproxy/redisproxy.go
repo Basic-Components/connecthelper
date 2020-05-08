@@ -3,6 +3,8 @@ package redisproxy
 import (
 	"log"
 
+	"sync"
+
 	"github.com/Basic-Components/connectproxy/errs"
 	"github.com/go-redis/redis"
 )
@@ -12,41 +14,65 @@ type redisProxyCallback func(cli *redis.Client) error
 
 // redisProxy redis客户端的代理
 type redisProxy struct {
-	Ok        bool
+	proxyLock sync.RWMutex //代理的锁
 	Options   *redis.Options
-	Cli       *redis.Client
+	Conn      *redis.Client
 	callBacks []redisProxyCallback
 }
 
 // New 创建一个新的数据库客户端代理
 func New() *redisProxy {
 	proxy := new(redisProxy)
-	proxy.Ok = false
+	proxy.proxyLock = sync.RWMutex{}
 	return proxy
+}
+
+// IsOk 检查代理是否已经可用
+func (proxy *redisProxy) IsOk() bool {
+	if proxy.Conn == nil {
+		return false
+	}
+	return true
+}
+
+func (proxy *redisProxy) GetConn() (*redis.Client, error) {
+	if !proxy.IsOk() {
+		return proxy.Conn, errs.ErrProxyNotInited
+	}
+	proxy.proxyLock.RLock()
+	defer proxy.proxyLock.RUnlock()
+	return proxy.Conn, nil
 }
 
 // Close 关闭pg
 func (proxy *redisProxy) Close() {
-	if proxy.Ok {
-		proxy.Cli.Close()
+	if proxy.IsOk() {
+		proxy.Conn.Close()
+		proxy.Conn = nil
 	}
 }
 
-// Init 给代理赋值客户端实例
-func (proxy *redisProxy) Init(cli *redis.Client) error {
-	if proxy.Ok {
-		return errs.ErrProxyAlreadyInited
-	}
-	proxy.Cli = cli
+//SetConnect 设置连接的客户端
+func (proxy *redisProxy) SetConnect(cli *redis.Client) {
+	proxy.proxyLock.Lock()
+	proxy.Conn = cli
+	proxy.proxyLock.Unlock()
 	for _, cb := range proxy.callBacks {
-		err := cb(proxy.Cli)
+		err := cb(proxy.Conn)
 		if err != nil {
 			log.Println("regist callback get error", err)
 		} else {
 			log.Println("regist callback done")
 		}
 	}
-	proxy.Ok = true
+}
+
+// Init 给代理赋值客户端实例
+func (proxy *redisProxy) Init(cli *redis.Client) error {
+	if proxy.IsOk() {
+		return errs.ErrProxyAlreadyInited
+	}
+	proxy.SetConnect(cli)
 	return nil
 }
 
