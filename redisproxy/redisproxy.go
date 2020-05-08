@@ -5,7 +5,6 @@ import (
 
 	"sync"
 
-	"github.com/Basic-Components/connectproxy/errs"
 	"github.com/go-redis/redis"
 )
 
@@ -37,7 +36,7 @@ func (proxy *redisProxy) IsOk() bool {
 
 func (proxy *redisProxy) GetConn() (*redis.Client, error) {
 	if !proxy.IsOk() {
-		return proxy.Conn, errs.ErrProxyNotInited
+		return proxy.Conn, ErrProxyNotInited
 	}
 	proxy.proxyLock.RLock()
 	defer proxy.proxyLock.RUnlock()
@@ -48,7 +47,9 @@ func (proxy *redisProxy) GetConn() (*redis.Client, error) {
 func (proxy *redisProxy) Close() {
 	if proxy.IsOk() {
 		proxy.Conn.Close()
+		proxy.proxyLock.Lock()
 		proxy.Conn = nil
+		proxy.proxyLock.Unlock()
 	}
 }
 
@@ -70,7 +71,7 @@ func (proxy *redisProxy) SetConnect(cli *redis.Client) {
 // Init 给代理赋值客户端实例
 func (proxy *redisProxy) Init(cli *redis.Client) error {
 	if proxy.IsOk() {
-		return errs.ErrProxyAlreadyInited
+		return ErrProxyAlreadyInited
 	}
 	proxy.SetConnect(cli)
 	return nil
@@ -95,6 +96,12 @@ func (proxy *redisProxy) InitFromURL(url string) error {
 // Regist 注册回调函数,在init执行后执行回调函数
 func (proxy *redisProxy) Regist(cb redisProxyCallback) {
 	proxy.callBacks = append(proxy.callBacks, cb)
+}
+
+// Regist 注册回调函数,在init执行后执行回调函数
+func (proxy *redisProxy) NewLock(key string, timeout int64) *distributedLock {
+	lock := newLock(proxy, key, timeout)
+	return lock
 }
 
 // Redis 默认的pg代理对象
