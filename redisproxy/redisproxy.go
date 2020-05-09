@@ -98,10 +98,16 @@ func (proxy *redisProxy) Regist(cb redisProxyCallback) {
 	proxy.callBacks = append(proxy.callBacks, cb)
 }
 
-// Regist 注册回调函数,在init执行后执行回调函数
+//NewLock 创建一个全局锁
 func (proxy *redisProxy) NewLock(key string, timeout int64) *distributedLock {
 	lock := newLock(proxy, key, timeout)
 	return lock
+}
+
+//NewCounter 创建一个全局锁
+func (proxy *redisProxy) NewCounter(key string) *distributedcounter {
+	counter := newCounter(proxy, key)
+	return counter
 }
 
 // Redis 默认的pg代理对象

@@ -13,9 +13,6 @@ var ErrProxyAlreadyInited = errors.New("proxy already inited yet")
 // ErrLockAlreadySet 分布式锁已经设置
 var ErrLockAlreadySet = errors.New("Lock is already setted")
 
-// ErrLockAlreadyReleased 分布式锁已经被释放了
-var ErrLockAlreadyReleased = errors.New("Lock is already released")
-
 //ErrLockWaitTimeout 等待解锁超时
 var ErrLockWaitTimeout = errors.New("wait lock timeout")
 

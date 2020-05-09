@@ -19,7 +19,7 @@ func newLock(proxy *redisProxy, key string, timeout int64) *distributedLock {
 	return lock
 }
 
-// SetLock 设置锁
+// Release 释放锁,锁不存在也不会报错
 func (lock *distributedLock) Release() error {
 	if !lock.proxy.IsOk() {
 		return ErrProxyNotInited
@@ -76,9 +76,7 @@ func (lock *distributedLock) IsLocked() (bool, error) {
 //Wait 等待锁解锁
 func (lock *distributedLock) Wait(timeout int64) error {
 	ch := make(chan error)
-	//wg := sync.WaitGroup{}
-	func() {
-		//wg.Add(1)
+	go func() {
 		for {
 			locked, err := lock.IsLocked()
 			if err != nil {
@@ -88,6 +86,8 @@ func (lock *distributedLock) Wait(timeout int64) error {
 				if !locked {
 					ch <- Done
 					break
+				} else {
+					time.Sleep(time.Duration(100) * time.Microsecond)
 				}
 			}
 		}
@@ -102,6 +102,6 @@ func (lock *distributedLock) Wait(timeout int64) error {
 		}
 	case <-time.After(time.Duration(timeout) * time.Second):
 		return ErrLockWaitTimeout
+
 	}
-	//wg.Wait()
 }

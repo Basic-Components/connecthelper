@@ -2,10 +2,152 @@ package redisproxy
 
 import (
 	"testing"
+	"time"
 
+	"github.com/go-redis/redis"
 	"github.com/stretchr/testify/assert"
 )
 
+// TEST_REDIS_URL 测试用的redis地址
+const TEST_REDIS_URL = "redis://localhost:6379"
+
 func Test_redisProxy_InitFromURL(t *testing.T) {
-	assert.Equal(t, 1, 1)
+	proxy := New()
+	err := proxy.InitFromURL(TEST_REDIS_URL)
+	defer proxy.Close()
+	if err != nil {
+		assert.Error(t, err, "init from url error")
+	}
+	conn, err := proxy.GetConn()
+	if err != nil {
+		assert.Error(t, err, "get conn error")
+	}
+	_, err = conn.Set("teststring", "ok", 10*time.Second).Result()
+	if err != nil {
+		assert.Error(t, err, "conn set error")
+	}
+	res, err := conn.Get("teststring").Result()
+	if err != nil {
+		assert.Error(t, err, "conn get error")
+	}
+	assert.Equal(t, "ok", res)
+}
+
+func Test_redisProxy_reset(t *testing.T) {
+	proxy := New()
+	proxy.Regist(func(conn *redis.Client) error {
+		t.Log("inited db")
+		return nil
+	})
+	err := proxy.InitFromURL(TEST_REDIS_URL)
+	defer proxy.Close()
+	if err != nil {
+		assert.Error(t, err, "init from url error")
+	}
+	options, err := redis.ParseURL(TEST_REDIS_URL)
+	if err != nil {
+		assert.Error(t, err, "reset from url error")
+	}
+	cli := redis.NewClient(options)
+	proxy.SetConnect(cli)
+	conn, err := proxy.GetConn()
+	if err != nil {
+		assert.Error(t, err, "get conn error")
+	}
+	_, err = conn.Set("teststring", "ok", 10*time.Second).Result()
+	if err != nil {
+		assert.Error(t, err, "conn set error")
+	}
+	res, err := conn.Get("teststring").Result()
+	if err != nil {
+		assert.Error(t, err, "conn get error")
+	}
+	assert.Equal(t, "ok", res)
+}
+
+func Test_redisProxy_Lock(t *testing.T) {
+	proxy := New()
+	err := proxy.InitFromURL(TEST_REDIS_URL)
+	defer proxy.Close()
+	if err != nil {
+		assert.Error(t, err, "init from url error")
+	}
+	lock := proxy.NewLock("testlock", 10)
+	locked, err := lock.IsLocked()
+	if err != nil {
+		assert.Error(t, err, "is locked error")
+	}
+	assert.Equal(t, false, locked)
+	err = lock.Release() //没有定义锁也可以释放,相当于删一个不存在的键
+	err = lock.Acquire()
+	if err != nil {
+		assert.Error(t, err, "lock acquire error")
+	}
+	err = lock.Acquire()
+	if err != ErrLockAlreadySet {
+		assert.Error(t, err, "lock acquire error")
+	}
+	err = lock.Release()
+	if err != nil {
+		assert.Error(t, err, "lock release error")
+	}
+}
+
+func Test_redisProxy_waitLock(t *testing.T) {
+	proxy := New()
+	err := proxy.InitFromURL(TEST_REDIS_URL)
+	defer proxy.Close()
+	if err != nil {
+		assert.Error(t, err, "init from url error")
+	}
+	lock := proxy.NewLock("testlock", 10)
+	locked, err := lock.IsLocked()
+	if err != nil {
+		assert.Error(t, err, "is locked error")
+	}
+	assert.Equal(t, false, locked)
+	err = lock.Acquire()
+	if err != nil {
+		assert.Error(t, err, "lock acquire error")
+	}
+	locked, err = lock.IsLocked()
+	if err != nil {
+		assert.Error(t, err, "is locked error")
+	}
+	assert.Equal(t, true, locked)
+
+	err = lock.Wait(3)
+	if err != ErrLockWaitTimeout {
+		assert.Error(t, err, "lock wait error")
+	}
+}
+
+func Test_redisProxy_counter(t *testing.T) {
+	proxy := New()
+	err := proxy.InitFromURL(TEST_REDIS_URL)
+	defer proxy.Close()
+	if err != nil {
+		assert.Error(t, err, "init from url error")
+	}
+	counter := proxy.NewCounter("testcounter")
+	res, err := counter.Count()
+	if err != nil {
+		assert.Error(t, err, "counter.Count error")
+	}
+	assert.Equal(t, int64(1), res)
+	res, err = counter.CountM(4)
+	if err != nil {
+		assert.Error(t, err, "counter.CountM error")
+	}
+	assert.Equal(t, int64(5), res)
+	err = counter.ReSet()
+	if err != nil {
+		assert.Error(t, err, "counter.reset error")
+	}
+	res, err = counter.Count()
+	if err != nil {
+		assert.Error(t, err, "counter.Count error")
+	}
+	assert.Equal(t, int64(1), res)
+
 }
