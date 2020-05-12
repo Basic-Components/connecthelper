@@ -15,7 +15,7 @@ type redisProxyCallback func(cli *redis.Client) error
 type redisProxy struct {
 	proxyLock sync.RWMutex //代理的锁
 	Options   *redis.Options
-	Conn      *redis.Client
+	conn      *redis.Client
 	callBacks []redisProxyCallback
 }
 
@@ -28,7 +28,7 @@ func New() *redisProxy {
 
 // IsOk 检查代理是否已经可用
 func (proxy *redisProxy) IsOk() bool {
-	if proxy.Conn == nil {
+	if proxy.conn == nil {
 		return false
 	}
 	return true
@@ -36,19 +36,19 @@ func (proxy *redisProxy) IsOk() bool {
 
 func (proxy *redisProxy) GetConn() (*redis.Client, error) {
 	if !proxy.IsOk() {
-		return proxy.Conn, ErrProxyNotInited
+		return proxy.conn, ErrProxyNotInited
 	}
 	proxy.proxyLock.RLock()
 	defer proxy.proxyLock.RUnlock()
-	return proxy.Conn, nil
+	return proxy.conn, nil
 }
 
 // Close 关闭pg
 func (proxy *redisProxy) Close() {
 	if proxy.IsOk() {
-		proxy.Conn.Close()
+		proxy.conn.Close()
 		proxy.proxyLock.Lock()
-		proxy.Conn = nil
+		proxy.conn = nil
 		proxy.proxyLock.Unlock()
 	}
 }
@@ -56,10 +56,10 @@ func (proxy *redisProxy) Close() {
 //SetConnect 设置连接的客户端
 func (proxy *redisProxy) SetConnect(cli *redis.Client) {
 	proxy.proxyLock.Lock()
-	proxy.Conn = cli
+	proxy.conn = cli
 	proxy.proxyLock.Unlock()
 	for _, cb := range proxy.callBacks {
-		err := cb(proxy.Conn)
+		err := cb(proxy.conn)
 		if err != nil {
 			log.Println("regist callback get error", err)
 		} else {
@@ -108,6 +108,12 @@ func (proxy *redisProxy) NewLock(key string, timeout int64) *distributedLock {
 func (proxy *redisProxy) NewCounter(key string) *distributedcounter {
 	counter := newCounter(proxy, key)
 	return counter
+}
+
+//NewBitmap 创建一个位图
+func (proxy *redisProxy) NewBitmap(key string) *bitmap {
+	bm := newBitmap(proxy, key)
+	return bm
 }
 
 // Redis 默认的pg代理对象

@@ -16,5 +16,8 @@ var ErrLockAlreadySet = errors.New("Lock is already setted")
 //ErrLockWaitTimeout 等待解锁超时
 var ErrLockWaitTimeout = errors.New("wait lock timeout")
 
+//ErrKeyNotExist 键不存在
+var ErrKeyNotExist = errors.New("key not exist")
+
 // Done 锁的结束信号
 var Done = errors.New("done")
