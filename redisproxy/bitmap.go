@@ -1,7 +1,7 @@
 package redisproxy
 
 import (
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v7"
 )
 
 // distributedLock 分布式锁结构
@@ -156,8 +156,8 @@ func getBitSet(redisResponse []byte) []bool {
 	bitset := make([]bool, len(redisResponse)*8)
 	for i := range redisResponse {
 		for j := 7; j >= 0; j-- {
-			bit_n := uint(i*8 + (7 - j))
-			bitset[bit_n] = hasBit(redisResponse[i], uint(j))
+			bitn := uint(i*8 + (7 - j))
+			bitset[bitn] = hasBit(redisResponse[i], uint(j))
 		}
 	}
 	return bitset
@@ -171,13 +171,13 @@ func (bm *bitmap) SettedOffsets() ([]int64, error) {
 	if err != nil {
 		return nil, err
 	}
-	bitmap_string, err := conn.Get(bm.key).Result()
+	bitmapstring, err := conn.Get(bm.key).Result()
 	if err != nil {
 		return nil, err
 	}
-	bitmap_bytes := []byte(bitmap_string)
+	bitmapbytes := []byte(bitmapstring)
 	res := []int64{}
-	for key, value := range getBitSet(bitmap_bytes) {
+	for key, value := range getBitSet(bitmapbytes) {
 		if value == true {
 			res = append(res, int64(key))
 		}

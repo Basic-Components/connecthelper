@@ -5,7 +5,7 @@ import (
 
 	"sync"
 
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v7"
 )
 
 // redisProxyCallback etcdv3操作的回调函数
@@ -113,6 +113,24 @@ func (proxy *redisProxy) NewCounter(key string) *distributedcounter {
 //NewBitmap 创建一个位图
 func (proxy *redisProxy) NewBitmap(key string) *bitmap {
 	bm := newBitmap(proxy, key)
+	return bm
+}
+
+//NewStreamTopic 创建一个流的主题对象
+func (proxy *redisProxy) NewStreamTopic(topic string, maxlen int64, strict bool) *StreamTopic {
+	bm := NewStreamTopic(proxy, topic, maxlen, strict)
+	return bm
+}
+
+//NewStreamProducer 创建一个流的生产者对象
+func (proxy *redisProxy) NewStreamProducer(topic string, maxlen int64, strict bool) *streamProducer {
+	bm := newStreamProducer(proxy, topic, maxlen, strict)
+	return bm
+}
+
+//NewStreamConsumer 创建一个流的生产者对象
+func (proxy *redisProxy) NewStreamConsumer(topics []string, start string, count int64, block int64, name string, noack bool, group ...string) *streamConsumer {
+	bm := newStreamConsumer(proxy, topics, start, count, block, name, noack, group...)
 	return bm
 }
 

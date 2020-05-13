@@ -19,5 +19,8 @@ var ErrLockWaitTimeout = errors.New("wait lock timeout")
 //ErrKeyNotExist 键不存在
 var ErrKeyNotExist = errors.New("key not exist")
 
+//ErrGroupNotInTopic 消费组不在topic上
+var ErrGroupNotInTopic = errors.New("Group Not In Topic")
+
 // Done 锁的结束信号
 var Done = errors.New("done")
