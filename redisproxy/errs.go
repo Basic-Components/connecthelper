@@ -22,5 +22,8 @@ var ErrKeyNotExist = errors.New("key not exist")
 //ErrGroupNotInTopic 消费组不在topic上
 var ErrGroupNotInTopic = errors.New("Group Not In Topic")
 
+//ErrStreamConsumerNotBlocked 消费者不是用阻塞模式监听
+var ErrStreamConsumerNotBlocked = errors.New("Stream Consumer Must Be Blocked")
+
 // Done 锁的结束信号
 var Done = errors.New("done")

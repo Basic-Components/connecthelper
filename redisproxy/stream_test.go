@@ -1,6 +1,7 @@
 package redisproxy
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -26,17 +27,21 @@ func Test_streamConsumer_Read(t *testing.T) {
 		proxy := New()
 		err := proxy.InitFromURL(TEST_REDIS_URL)
 		defer proxy.Close()
+		ctx := context.Background()
 		producer := proxy.NewStreamProducer("test_stream", 10, false)
-		time.Sleep(1 * time.Second)
-		_, err = producer.Publish(map[string]interface{}{"a": 1})
-		if err != nil {
-			assert.Error(t, err, "Producer error")
+		for _, v := range []int{1, 2, 3} {
+			time.Sleep(1 * time.Second)
+			_, err = producer.Publish(ctx, map[string]interface{}{"a": v})
+			if err != nil {
+				assert.Error(t, err, "Producer error")
+			}
 		}
 	}()
 
 	consumer := proxy.NewStreamConsumer([]string{"test_stream"}, "$", 1, 3, "", false)
 	assert.Equal(t, 3*time.Second, consumer.Block)
-	res, err := consumer.Read()
+	ctx := context.Background()
+	res, err := consumer.Read(ctx)
 	if err != nil {
 		assert.Error(t, err, "consumer.Subscribe error")
 	}
@@ -59,20 +64,27 @@ func Test_streamConsumer_Subscribe(t *testing.T) {
 		assert.Error(t, err, "FlushDB error")
 	}
 	go func() {
+		ctx := context.Background()
 		producer := proxy.NewStreamProducer("test_stream", 10, false)
 		time.Sleep(1 * time.Second)
-		_, err := producer.Publish(map[string]interface{}{"a": 1})
+		_, err := producer.Publish(ctx, map[string]interface{}{"a": 1})
 		if err != nil {
 			assert.Error(t, err, "Producer error")
 		}
 	}()
 
+	ctx := context.Background()
 	consumer := proxy.NewStreamConsumer([]string{"test_stream"}, "$", 1, 3, "", false)
 	assert.Equal(t, 3*time.Second, consumer.Block)
-	recover()
-	ch := consumer.Subscribe()
+	go func() {
+		time.Sleep(10 * time.Second)
+		consumer.UnSubscribe()
+	}()
+	ch, err := consumer.Subscribe(ctx)
+	if err != nil {
+		assert.Error(t, err, "Subscribe error")
+	}
 	for msg := range ch {
 		assert.Equal(t, "test_stream", msg.Stream)
-		break
 	}
 }
