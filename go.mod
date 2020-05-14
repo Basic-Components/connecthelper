@@ -1,6 +1,6 @@
 module github.com/Basic-Components/connectproxy
 
-go 1.12
+go 1.13
 
 require (
 	github.com/bgentry/speakeasy v0.1.0 // indirect
@@ -42,11 +42,9 @@ require (
 	go.etcd.io/bbolt v1.3.3 // indirect
 	go.etcd.io/etcd v3.3.20+incompatible
 	go.uber.org/zap v1.15.0 // indirect
-	golang.org/x/sys v0.0.0-20191010194322-b09406accb47 // indirect
 	golang.org/x/time v0.0.0-20180412165947-fbb02b2291d2 // indirect
 	google.golang.org/grpc v1.29.1 // indirect
 	gopkg.in/cheggaaa/pb.v1 v1.0.25 // indirect
-	gopkg.in/yaml.v2 v2.2.4 // indirect
 	sigs.k8s.io/yaml v1.1.0 // indirect
 )
 

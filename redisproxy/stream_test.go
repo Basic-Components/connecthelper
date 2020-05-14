@@ -23,9 +23,12 @@ func Test_streamConsumer_Read(t *testing.T) {
 		assert.Error(t, err, "FlushDB error")
 	}
 	go func() {
+		proxy := New()
+		err := proxy.InitFromURL(TEST_REDIS_URL)
+		defer proxy.Close()
 		producer := proxy.NewStreamProducer("test_stream", 10, false)
 		time.Sleep(1 * time.Second)
-		_, err := producer.Publish(map[string]interface{}{"a": 1})
+		_, err = producer.Publish(map[string]interface{}{"a": 1})
 		if err != nil {
 			assert.Error(t, err, "Producer error")
 		}
