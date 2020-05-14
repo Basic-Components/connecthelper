@@ -134,5 +134,41 @@ func (proxy *redisProxy) NewStreamConsumer(topics []string, start string, count 
 	return bm
 }
 
+//NewPubSubTopic 创建一个流的主题对象
+func (proxy *redisProxy) NewPubSubTopic(topic string) *PubSubTopic {
+	bm := NewPubSubTopic(proxy, topic)
+	return bm
+}
+
+//NewPubSubProducer 创建一个流的生产者对象
+func (proxy *redisProxy) NewPubSubProducer(topic string) *pubsubProducer {
+	bm := newPubSubProducer(proxy, topic)
+	return bm
+}
+
+//NewStreamConsumer 创建一个流的生产者对象
+func (proxy *redisProxy) NewPubSubConsumer(topics []string) *pubsubConsumer {
+	bm := newPubSubConsumer(proxy, topics)
+	return bm
+}
+
+//NewQueueTopic 创建一个流的主题对象
+func (proxy *redisProxy) NewQueue(topic string) *Queue {
+	bm := NewQueue(proxy, topic)
+	return bm
+}
+
+//NewPubSubProducer 创建一个流的生产者对象
+func (proxy *redisProxy) NewQueueProducer(topic string) *queueProducer {
+	bm := newQueueProducer(proxy, topic)
+	return bm
+}
+
+//NewStreamConsumer 创建一个流的生产者对象
+func (proxy *redisProxy) NewQueueConsumer(topics []string) *queueConsumer {
+	bm := newQueueConsumer(proxy, topics)
+	return bm
+}
+
 // Redis 默认的pg代理对象
 var Redis = New()

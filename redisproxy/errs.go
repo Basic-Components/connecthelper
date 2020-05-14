@@ -25,5 +25,17 @@ var ErrGroupNotInTopic = errors.New("Group Not In Topic")
 //ErrStreamConsumerNotBlocked 消费者不是用阻塞模式监听
 var ErrStreamConsumerNotBlocked = errors.New("Stream Consumer Must Be Blocked")
 
+//ErrPubSubNotSubscribe Pubsub模式订阅者未订阅
+var ErrPubSubNotSubscribe = errors.New("PubSub Not Subscribe")
+
+//ErrQueueGetNotMatch Pubsub模式订阅者未订阅
+var ErrQueueGetNotMatch = errors.New("Queue Get NotMatch")
+
+//ErrIsAlreadySubscribed 消费者已经订阅了数据
+var ErrIsAlreadySubscribed = errors.New("Is Already Subscribed")
+
+//ErrIsAlreadyUnSubscribed 消费者已经取消订阅了数据
+var ErrIsAlreadyUnSubscribed = errors.New("Is Already UnSubscribed")
+
 // Done 锁的结束信号
 var Done = errors.New("done")

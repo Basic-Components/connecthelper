@@ -27,11 +27,10 @@ func Test_streamConsumer_Read(t *testing.T) {
 		proxy := New()
 		err := proxy.InitFromURL(TEST_REDIS_URL)
 		defer proxy.Close()
-		ctx := context.Background()
 		producer := proxy.NewStreamProducer("test_stream", 10, false)
 		for _, v := range []int{1, 2, 3} {
 			time.Sleep(1 * time.Second)
-			_, err = producer.Publish(ctx, map[string]interface{}{"a": v})
+			_, err = producer.Publish(map[string]interface{}{"a": v})
 			if err != nil {
 				assert.Error(t, err, "Producer error")
 			}
@@ -64,10 +63,9 @@ func Test_streamConsumer_Subscribe(t *testing.T) {
 		assert.Error(t, err, "FlushDB error")
 	}
 	go func() {
-		ctx := context.Background()
 		producer := proxy.NewStreamProducer("test_stream", 10, false)
 		time.Sleep(1 * time.Second)
-		_, err := producer.Publish(ctx, map[string]interface{}{"a": 1})
+		_, err := producer.Publish(map[string]interface{}{"a": 1})
 		if err != nil {
 			assert.Error(t, err, "Producer error")
 		}
@@ -78,7 +76,10 @@ func Test_streamConsumer_Subscribe(t *testing.T) {
 	assert.Equal(t, 3*time.Second, consumer.Block)
 	go func() {
 		time.Sleep(10 * time.Second)
-		consumer.UnSubscribe()
+		err := consumer.Close()
+		if err != nil {
+			assert.Error(t, err, "close error")
+		}
 	}()
 	ch, err := consumer.Subscribe(ctx)
 	if err != nil {

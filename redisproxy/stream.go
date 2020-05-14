@@ -80,7 +80,7 @@ func (topic *StreamTopic) Range(start, stop string) ([]redis.XMessage, error) {
 }
 
 //Publish 向主题流发送消息
-func (topic *StreamTopic) Publish(ctx context.Context, value map[string]interface{}) (string, error) {
+func (topic *StreamTopic) Publish(value map[string]interface{}) (string, error) {
 	if !topic.proxy.IsOk() {
 		return "", ErrProxyNotInited
 	}
@@ -101,7 +101,7 @@ func (topic *StreamTopic) Publish(ctx context.Context, value map[string]interfac
 		}
 	}
 
-	res, err := conn.WithContext(ctx).XAdd(&args).Result()
+	res, err := conn.XAdd(&args).Result()
 	if err != nil {
 		fmt.Println("publish error:", err.Error())
 	}
@@ -285,12 +285,13 @@ func newStreamProducer(proxy *redisProxy, topic string, maxlen int64, strict boo
 }
 
 //Publish 向流发送消息
-func (producer *streamProducer) Publish(ctx context.Context, value map[string]interface{}) (string, error) {
-	return producer.Topic.Publish(ctx, value)
+func (producer *streamProducer) Publish(value map[string]interface{}) (string, error) {
+	return producer.Topic.Publish(value)
 }
 
 type streamConsumer struct {
 	stopch        chan error
+	isSubscribed  bool
 	proxy         *redisProxy   //使用的redis连接代理
 	Topics        []string      //监听的topic
 	Count         int64         //一次读取多少条消息
@@ -304,6 +305,7 @@ type streamConsumer struct {
 func newStreamConsumer(proxy *redisProxy, topics []string, start string, count int64, block int64, name string, noack bool, group ...string) *streamConsumer {
 	s := new(streamConsumer)
 	s.stopch = make(chan error)
+	s.isSubscribed = false
 	s.Topics = topics
 	s.proxy = proxy
 	s.Start = start
@@ -402,7 +404,7 @@ func (consumer *streamConsumer) Ack(ctx context.Context, ids ...string) error {
 }
 
 //Read 订阅流,count可以
-func (consumer *streamConsumer) Subscribe(ctx context.Context) (chan redis.XStream, error) {
+func (consumer *streamConsumer) Subscribe(ctx context.Context) (<-chan redis.XStream, error) {
 
 	if !consumer.proxy.IsOk() {
 		fmt.Println("consumer.proxy.IsOk error: ", ErrProxyNotInited.Error())
@@ -411,6 +413,9 @@ func (consumer *streamConsumer) Subscribe(ctx context.Context) (chan redis.XStre
 	if !(consumer.Block >= 0) {
 		fmt.Println("consumer must blocked", ErrStreamConsumerNotBlocked.Error())
 		return nil, ErrStreamConsumerNotBlocked
+	}
+	if consumer.isSubscribed {
+		return nil, ErrIsAlreadySubscribed
 	}
 	conn, err := consumer.proxy.GetConn()
 	if err != nil {
@@ -427,6 +432,7 @@ func (consumer *streamConsumer) Subscribe(ctx context.Context) (chan redis.XStre
 					fmt.Println("exiting...")
 					if rec == Done {
 						close(ch)
+						consumer.isSubscribed = false
 						break Loop
 					}
 				}
@@ -440,6 +446,7 @@ func (consumer *streamConsumer) Subscribe(ctx context.Context) (chan redis.XStre
 							fmt.Println("read one error: ", err.Error())
 							close(ch)
 							//panic(err)
+							consumer.isSubscribed = false
 							break Loop
 						}
 					} else {
@@ -451,8 +458,13 @@ func (consumer *streamConsumer) Subscribe(ctx context.Context) (chan redis.XStre
 			}
 		}
 	}()
+	consumer.isSubscribed = true
 	return ch, nil
 }
-func (consumer *streamConsumer) UnSubscribe() {
+func (consumer *streamConsumer) Close() error {
+	if !consumer.isSubscribed {
+		return ErrIsAlreadyUnSubscribed
+	}
 	consumer.stopch <- Done
+	return nil
 }
