@@ -336,7 +336,12 @@ func newStreamConsumer(proxy *redisProxy, topics []string, start string, count i
 	return s
 }
 
-func (consumer *streamConsumer) readOne(conn *redis.Client, ctx context.Context) ([]redis.XStream, error) {
+func (consumer *streamConsumer) readOne(ctx context.Context, conn *redis.Client) ([]redis.XStream, error) {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Println(err)
+		}
+	}()
 	fmt.Printf("PoolStats: %+v \n", conn.PoolStats())
 	if consumer.ConsumerGroup == "" {
 		streams := []string{}
@@ -380,7 +385,7 @@ func (consumer *streamConsumer) Read(ctx context.Context) ([]redis.XStream, erro
 	if err != nil {
 		return nil, err
 	}
-	return consumer.readOne(conn, ctx)
+	return consumer.readOne(ctx, conn)
 }
 
 //Subscribe 订阅流,count可以
@@ -438,7 +443,7 @@ func (consumer *streamConsumer) Subscribe(ctx context.Context) (<-chan redis.XSt
 				}
 			default:
 				{
-					res, err := consumer.readOne(conn, ctx)
+					res, err := consumer.readOne(ctx, conn)
 					if err != nil {
 						if err == redis.Nil {
 							continue

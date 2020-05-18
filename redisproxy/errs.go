@@ -37,5 +37,14 @@ var ErrIsAlreadySubscribed = errors.New("Is Already Subscribed")
 //ErrIsAlreadyUnSubscribed 消费者已经取消订阅了数据
 var ErrIsAlreadyUnSubscribed = errors.New("Is Already UnSubscribed")
 
+//ErrRankError 排名信息有问题
+var ErrRankError = errors.New("Rank Error")
+
+//ErrCountMustBePositive 个数参数必须为正数
+var ErrCountMustBePositive = errors.New("Count Must Be Positive")
+
+//ErrElementNotExist 个数参数必须为正数
+var ErrElementNotExist = errors.New("Element Not Exist")
+
 // Done 锁的结束信号
 var Done = errors.New("done")

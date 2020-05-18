@@ -170,5 +170,11 @@ func (proxy *redisProxy) NewQueueConsumer(topics []string) *queueConsumer {
 	return bm
 }
 
+//NewRanker 创建一个排名器
+func (proxy *redisProxy) NewRanker(name string) *ranker {
+	bm := newRanker(proxy, name)
+	return bm
+}
+
 // Redis 默认的pg代理对象
 var Redis = New()

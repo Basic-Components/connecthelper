@@ -12,6 +12,8 @@ type Queue struct {
 	proxy *redisProxy
 	Name  string
 }
+
+// QueueMessage 从队列中获取的消息
 type QueueMessage struct {
 	Topic   string
 	Payload string
@@ -47,7 +49,7 @@ func (q *Queue) Put(values ...interface{}) (int64, error) {
 		return 0, err
 	}
 
-	res, err := conn.LPushX(q.Name, values...).Result()
+	res, err := conn.LPush(q.Name, values...).Result()
 	if err != nil {
 		fmt.Println("publish error:", err.Error())
 	}
@@ -136,8 +138,8 @@ func newQueueConsumer(proxy *redisProxy, topics []string) *queueConsumer {
 	return s
 }
 
-func (consumer *queueConsumer) readOne(conn *redis.Client) (*QueueMessage, error) {
-	res, err := conn.BRPop(0, consumer.Topics...).Result()
+func (consumer *queueConsumer) readOne(conn *redis.Client, timeout time.Duration) (*QueueMessage, error) {
+	res, err := conn.BRPop(timeout, consumer.Topics...).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +152,7 @@ func (consumer *queueConsumer) readOne(conn *redis.Client) (*QueueMessage, error
 	}
 	return m, nil
 }
-func (consumer *queueConsumer) Read() (*QueueMessage, error) {
+func (consumer *queueConsumer) Read(timeout time.Duration) (*QueueMessage, error) {
 	if !consumer.proxy.IsOk() {
 		return nil, ErrProxyNotInited
 	}
@@ -158,7 +160,7 @@ func (consumer *queueConsumer) Read() (*QueueMessage, error) {
 	if err != nil {
 		return nil, err
 	}
-	return consumer.readOne(conn)
+	return consumer.readOne(conn, timeout)
 }
 
 //Read 订阅流,count可以
@@ -190,13 +192,17 @@ func (consumer *queueConsumer) Subscribe() (<-chan QueueMessage, error) {
 				}
 			default:
 				{
-					res, err := consumer.readOne(conn)
+					res, err := consumer.readOne(conn, 1*time.Second)
 					if err != nil {
-						fmt.Println("read one error: ", err.Error())
-						close(ch)
-						//panic(err)
-						consumer.isSubscribed = false
-						break Loop
+						if err == redis.Nil {
+							continue
+						} else {
+							fmt.Println("read one error: ", err.Error())
+							close(ch)
+							consumer.isSubscribed = false
+							//panic(err)
+							break Loop
+						}
 					} else {
 						ch <- *res
 					}
