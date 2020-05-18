@@ -5,35 +5,70 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	pg "github.com/go-pg/pg/v9"
-
-	"github.com/Basic-Components/connectproxy/errs"
 )
 
-// DBProxyCallback 数据库操作的回调函数
+// DBProxyCallback pg数据库操作的回调函数
 type dbProxyCallback func(dbCli *pg.DB) error
 
 // DBProxy 数据库客户端的代理
 type dbProxy struct {
-	Ok        bool
+	proxyLock sync.RWMutex //代理的锁
 	Options   *pg.Options
-	Cli       *pg.DB
+	conn      *pg.DB
 	callBacks []dbProxyCallback
 }
 
 // New 创建一个新的数据库客户端代理
 func New() *dbProxy {
 	proxy := new(dbProxy)
-	proxy.Ok = false
+	proxy.proxyLock = sync.RWMutex{}
 	return proxy
+}
+
+// IsOk 检查代理是否已经可用
+func (proxy *dbProxy) IsOk() bool {
+	if proxy.conn == nil {
+		return false
+	}
+	return true
+}
+
+//GetConn 获取被代理的连接
+func (proxy *dbProxy) GetConn() (*pg.DB, error) {
+	if !proxy.IsOk() {
+		return proxy.conn, ErrProxyNotInited
+	}
+	proxy.proxyLock.RLock()
+	defer proxy.proxyLock.RUnlock()
+	return proxy.conn, nil
 }
 
 // Close 关闭pg
 func (proxy *dbProxy) Close() {
-	if proxy.Ok {
-		proxy.Cli.Close()
+	if proxy.IsOk() {
+		proxy.conn.Close()
+		proxy.proxyLock.Lock()
+		proxy.conn = nil
+		proxy.proxyLock.Unlock()
+	}
+}
+
+//SetConnect 设置连接的客户端
+func (proxy *dbProxy) SetConnect(cli *pg.DB) {
+	proxy.proxyLock.Lock()
+	proxy.conn = cli
+	proxy.proxyLock.Unlock()
+	for _, cb := range proxy.callBacks {
+		err := cb(proxy.conn)
+		if err != nil {
+			log.Println("regist callback get error", err)
+		} else {
+			log.Println("regist callback done")
+		}
 	}
 }
 
@@ -45,7 +80,7 @@ func parseDBURL(address string) (*pg.Options, error) {
 		return result, err
 	}
 	if u.Scheme != "postgres" {
-		return result, errs.ErrURLSchemaWrong
+		return result, ErrURLSchemaWrong
 	}
 
 	user := u.User.Username()
@@ -197,21 +232,11 @@ func parseDBURL(address string) (*pg.Options, error) {
 }
 
 // Init 给代理赋值客户端实例
-func (proxy *dbProxy) Init(db *pg.DB) error {
-	if proxy.Ok {
-		return errs.ErrProxyAlreadyInited
+func (proxy *dbProxy) Init(cli *pg.DB) error {
+	if proxy.IsOk() {
+		return ErrProxyAlreadyInited
 	}
-	proxy.Cli = db
-	for _, cb := range proxy.callBacks {
-		//go cb(proxy.Cli)
-		err := cb(proxy.Cli)
-		if err != nil {
-			log.Println("regist callback get error", err)
-		} else {
-			log.Println("regist callback done")
-		}
-	}
-	proxy.Ok = true
+	proxy.SetConnect(cli)
 	return nil
 }
 
@@ -233,10 +258,10 @@ func (proxy *dbProxy) InitFromURL(address string) error {
 }
 
 func (proxy *dbProxy) Exec(query interface{}, params ...interface{}) (res pg.Result, err error) {
-	if !proxy.Ok {
-		return nil, errs.ErrProxyNotInited
+	if !proxy.IsOk() {
+		return nil, ErrProxyNotInited
 	}
-	return proxy.Cli.Exec(query, params)
+	return proxy.conn.Exec(query, params)
 }
 
 // Regist 注册回调函数,在init执行后执行回调函数
@@ -244,5 +269,5 @@ func (proxy *dbProxy) Regist(cb dbProxyCallback) {
 	proxy.callBacks = append(proxy.callBacks, cb)
 }
 
-// DB 默认的pg代理对象
-var DB = New()
+//Proxy 默认的pg代理对象
+var Proxy = New()

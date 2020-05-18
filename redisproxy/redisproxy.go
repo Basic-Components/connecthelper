@@ -8,7 +8,7 @@ import (
 	"github.com/go-redis/redis/v7"
 )
 
-// redisProxyCallback etcdv3操作的回调函数
+// redisProxyCallback redis操作的回调函数
 type redisProxyCallback func(cli *redis.Client) error
 
 // redisProxy redis客户端的代理
@@ -176,5 +176,5 @@ func (proxy *redisProxy) NewRanker(name string) *ranker {
 	return bm
 }
 
-// Redis 默认的pg代理对象
-var Redis = New()
+// Proxy 默认的pg代理对象
+var Proxy = New()

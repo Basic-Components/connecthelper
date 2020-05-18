@@ -13,9 +13,13 @@ func Test_dbProxy(t *testing.T) {
 	db.InitFromURL("postgres://postgres:postgres@localhost:5432/test")
 	defer db.Close()
 	var s1 string
-	_, err := db.Cli.QueryOne(pg.Scan(&s1), `SELECT 1`)
+	conn, err := db.GetConn()
 	if err != nil {
-		fmt.Println("PostgreSQL is down")
+		fmt.Println("PostgreSQL GetConn error ", err)
+	}
+	_, err = conn.QueryOne(pg.Scan(&s1), `SELECT 1`)
+	if err != nil {
+		fmt.Println("PostgreSQL is down", err)
 	}
 	assert.Equal(t, "1", s1)
 

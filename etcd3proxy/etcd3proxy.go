@@ -2,8 +2,8 @@ package etcd3proxy
 
 import (
 	"log"
+	"sync"
 
-	"github.com/Basic-Components/connectproxy/errs"
 	"go.etcd.io/etcd/clientv3"
 )
 
@@ -12,41 +12,68 @@ type etcd3ProxyCallback func(cli *clientv3.Client) error
 
 // etcd3Proxy etcd3客户端的代理
 type etcd3Proxy struct {
-	Ok        bool
+	proxyLock sync.RWMutex //代理的锁
 	Options   *clientv3.Config
-	Cli       *clientv3.Client
+	conn      *clientv3.Client
 	callBacks []etcd3ProxyCallback
 }
 
 // New 创建一个新的数据库客户端代理
 func New() *etcd3Proxy {
 	proxy := new(etcd3Proxy)
-	proxy.Ok = false
+	proxy.proxyLock = sync.RWMutex{}
 	return proxy
 }
 
-// Close 关闭pg
+// IsOk 检查代理是否已经可用
+func (proxy *etcd3Proxy) IsOk() bool {
+	if proxy.conn == nil {
+		return false
+	}
+	return true
+}
+
+//GetConn 获取被代理的连接
+func (proxy *etcd3Proxy) GetConn() (*clientv3.Client, error) {
+	if !proxy.IsOk() {
+		return proxy.conn, ErrProxyNotInited
+	}
+	proxy.proxyLock.RLock()
+	defer proxy.proxyLock.RUnlock()
+	return proxy.conn, nil
+}
+
+// Close 关闭etcd
 func (proxy *etcd3Proxy) Close() {
-	if proxy.Ok {
-		proxy.Cli.Close()
+	if proxy.IsOk() {
+		proxy.conn.Close()
+		proxy.proxyLock.Lock()
+		proxy.conn = nil
+		proxy.proxyLock.Unlock()
 	}
 }
 
-// Init 给代理赋值客户端实例
-func (proxy *etcd3Proxy) Init(cli *clientv3.Client) error {
-	if proxy.Ok {
-		return errs.ErrProxyAlreadyInited
-	}
-	proxy.Cli = cli
+//SetConnect 设置连接的客户端
+func (proxy *etcd3Proxy) SetConnect(cli *clientv3.Client) {
+	proxy.proxyLock.Lock()
+	proxy.conn = cli
+	proxy.proxyLock.Unlock()
 	for _, cb := range proxy.callBacks {
-		err := cb(proxy.Cli)
+		err := cb(proxy.conn)
 		if err != nil {
 			log.Println("regist callback get error", err)
 		} else {
 			log.Println("regist callback done")
 		}
 	}
-	proxy.Ok = true
+}
+
+// Init 给代理赋值客户端实例
+func (proxy *etcd3Proxy) Init(cli *clientv3.Client) error {
+	if proxy.IsOk() {
+		return ErrProxyAlreadyInited
+	}
+	proxy.SetConnect(cli)
 	return nil
 }
 
@@ -65,5 +92,5 @@ func (proxy *etcd3Proxy) Regist(cb etcd3ProxyCallback) {
 	proxy.callBacks = append(proxy.callBacks, cb)
 }
 
-// Etcd 默认的pg代理对象
-var Etcd = New()
+//Proxy 默认的pg代理对象
+var Proxy = New()
