@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	kafka "github.com/confluentinc/confluent-kafka-go/kafka"
-	"github.com/go-pg/pg/v9"
 )
 
 // KafkaConsumerProxyCallback KafkaProducer操作的回调函数
@@ -14,13 +13,13 @@ type KafkaConsumerProxyCallback func(consumer *kafka.Consumer) error
 // kafkaProducerProxy kafka生产者的代理
 type kafkaConsumerProxy struct {
 	proxyLock sync.RWMutex //代理的锁
-	Options   *pg.Options
+	Options   *kafka.ConfigMap
 	conn      *kafka.Consumer
 	callBacks []KafkaConsumerProxyCallback
 }
 
-// New 创建一个新的数据库客户端代理
-func New() *kafkaConsumerProxy {
+// NewConsumerProxy 创建一个新的数据库客户端代理
+func NewConsumerProxy() *kafkaConsumerProxy {
 	proxy := new(kafkaConsumerProxy)
 	proxy.proxyLock = sync.RWMutex{}
 	return proxy
@@ -117,3 +116,5 @@ func (proxy *kafkaConsumerProxy) UnSubscribe() error {
 	}
 	return p.UnSubscribe()
 }
+
+var ConsumerProxy = NewConsumerProxy()

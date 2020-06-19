@@ -6,8 +6,10 @@
 
 ## 代理的对象汇总
 
-子模块|代理的包|默认的代理对象
----|---|---
-`pgproxy`|`github.com/go-pg/pg/v9`|`DB`
-`etcd3proxy`|`go.etcd.io/etcd/clientv3`|`Etcd`
-`redisproxy`|`github.com/go-redis/redis`|`Redis`
+| 子模块       | 代理的包                                           | 默认的代理对象                                         |
+| ------------ | -------------------------------------------------- | ------------------------------------------------------ |
+| `pgproxy`    | `github.com/go-pg/pg/v9`                           | `Proxy`                                                |
+| `etcd3proxy` | `go.etcd.io/etcd/clientv3`                         | `Proxy`                                                |
+| `redisproxy` | `github.com/go-redis/redis`                        | `Proxy`                                                |
+| `kafkaproxy` | `github.com/confluentinc/confluent-kafka-go/kafka` | `ProducerProxy|ConsumerProxy`                          |
+| `logger`     | `github.com/sirupsen/logrus`                       | `Logger` ,注意更经常的我们直接使用函数如`Info`,`Error` |
