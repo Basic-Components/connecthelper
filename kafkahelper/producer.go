@@ -1,8 +1,9 @@
-package kafkaproxy
+package kafkahelper
 
 import (
-	"log"
 	"sync"
+
+	log "github.com/Basic-Components/loggerhelper"
 
 	kafka "github.com/confluentinc/confluent-kafka-go/kafka"
 )
@@ -61,9 +62,9 @@ func (proxy *kafkaProducerProxy) SetConnect(cli *kafka.Producer) {
 	for _, cb := range proxy.callBacks {
 		err := cb(proxy.conn)
 		if err != nil {
-			log.Println("regist callback get error", err)
+			log.Error(map[string]interface{}{"err": err}, "regist callback get error")
 		} else {
-			log.Println("regist callback done")
+			log.Info(nil, "regist callback done")
 		}
 	}
 }

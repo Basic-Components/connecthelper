@@ -1,4 +1,4 @@
-package redisproxy
+package redishelper
 
 import (
 	"testing"

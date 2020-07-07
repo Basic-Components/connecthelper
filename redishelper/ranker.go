@@ -1,4 +1,4 @@
-package redisproxy
+package redishelper
 
 import (
 	"fmt"
@@ -7,12 +7,12 @@ import (
 )
 
 type ranker struct {
-	proxy *redisProxy
+	proxy *redisHelper
 	Name  string
 }
 
 //newRanker 新建一个排序器
-func newRanker(proxy *redisProxy, name string) *ranker {
+func newRanker(proxy *redisHelper, name string) *ranker {
 	s := new(ranker)
 	s.Name = name
 	s.proxy = proxy
@@ -22,7 +22,7 @@ func newRanker(proxy *redisProxy, name string) *ranker {
 // Len 获取排名器的当前长度
 func (r *ranker) Len() (int64, error) {
 	if !r.proxy.IsOk() {
-		return 0, ErrProxyNotInited
+		return 0, ErrHelperNotInited
 	}
 	conn, err := r.proxy.GetConn()
 	if err != nil {
@@ -34,7 +34,7 @@ func (r *ranker) Len() (int64, error) {
 // Add 增加一个新元素
 func (r *ranker) Add(elements ...*redis.Z) (int64, error) {
 	if !r.proxy.IsOk() {
-		return 0, ErrProxyNotInited
+		return 0, ErrHelperNotInited
 	}
 	conn, err := r.proxy.GetConn()
 	if err != nil {
@@ -46,7 +46,7 @@ func (r *ranker) Add(elements ...*redis.Z) (int64, error) {
 // Update 更新元素的权重
 func (r *ranker) Update(elements ...*redis.Z) (int64, error) {
 	if !r.proxy.IsOk() {
-		return 0, ErrProxyNotInited
+		return 0, ErrHelperNotInited
 	}
 	conn, err := r.proxy.GetConn()
 	if err != nil {
@@ -58,7 +58,7 @@ func (r *ranker) Update(elements ...*redis.Z) (int64, error) {
 // AddOrUpdate 如果元素存在则更新元素权重,不存在则增加元素
 func (r *ranker) AddOrUpdate(elements ...*redis.Z) (int64, error) {
 	if !r.proxy.IsOk() {
-		return 0, ErrProxyNotInited
+		return 0, ErrHelperNotInited
 	}
 	conn, err := r.proxy.GetConn()
 	if err != nil {
@@ -70,7 +70,7 @@ func (r *ranker) AddOrUpdate(elements ...*redis.Z) (int64, error) {
 // Remove 删除元素
 func (r *ranker) Remove(elements ...interface{}) (int64, error) {
 	if !r.proxy.IsOk() {
-		return 0, ErrProxyNotInited
+		return 0, ErrHelperNotInited
 	}
 	conn, err := r.proxy.GetConn()
 	if err != nil {
@@ -82,7 +82,7 @@ func (r *ranker) Remove(elements ...interface{}) (int64, error) {
 // INCR 为元素累增权重,如果不设置权重则默认累增1
 func (r *ranker) INCR(element string, weight ...float64) (float64, error) {
 	if !r.proxy.IsOk() {
-		return 0, ErrProxyNotInited
+		return 0, ErrHelperNotInited
 	}
 	conn, err := r.proxy.GetConn()
 	if err != nil {
@@ -100,7 +100,7 @@ func (r *ranker) INCR(element string, weight ...float64) (float64, error) {
 //Range 获取排名范围内的元素,desc为True则为从大到小否则为从小到大
 func (r *ranker) Range(start, end int64, desc bool) ([]string, error) {
 	if !r.proxy.IsOk() {
-		return nil, ErrProxyNotInited
+		return nil, ErrHelperNotInited
 	}
 	conn, err := r.proxy.GetConn()
 	if err != nil {
@@ -138,7 +138,7 @@ func (r *ranker) Tail(count int64, desc bool) ([]string, error) {
 //GetRank 获取指定元素的排名,desc为True则为从大到小否则为从小到大
 func (r *ranker) GetRank(element string, desc bool) (int64, error) {
 	if !r.proxy.IsOk() {
-		return -1, ErrProxyNotInited
+		return -1, ErrHelperNotInited
 	}
 	conn, err := r.proxy.GetConn()
 	if err != nil {
@@ -184,7 +184,7 @@ func (r *ranker) GetElementByRank(rank int64, desc bool) (string, error) {
 //Close 关闭排名器
 func (r *ranker) Close() error {
 	if !r.proxy.IsOk() {
-		return ErrProxyNotInited
+		return ErrHelperNotInited
 	}
 	conn, err := r.proxy.GetConn()
 	if err != nil {

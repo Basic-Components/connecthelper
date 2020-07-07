@@ -1,12 +1,12 @@
-package redisproxy
+package redishelper
 
 // distributedcounter 分布式计数器
 type distributedcounter struct {
-	proxy *redisProxy
+	proxy *redisHelper
 	key   string
 }
 
-func newCounter(proxy *redisProxy, key string) *distributedcounter {
+func newCounter(proxy *redisHelper, key string) *distributedcounter {
 	counter := new(distributedcounter)
 	counter.key = key
 	counter.proxy = proxy
@@ -16,7 +16,7 @@ func newCounter(proxy *redisProxy, key string) *distributedcounter {
 // Count 加1后的当前计数
 func (counter *distributedcounter) Count() (int64, error) {
 	if !counter.proxy.IsOk() {
-		return 0, ErrProxyNotInited
+		return 0, ErrHelperNotInited
 	}
 	conn, err := counter.proxy.GetConn()
 	if err != nil {
@@ -32,7 +32,7 @@ func (counter *distributedcounter) Count() (int64, error) {
 // Count 加1后的当前计数
 func (counter *distributedcounter) CountM(value int64) (int64, error) {
 	if !counter.proxy.IsOk() {
-		return 0, ErrProxyNotInited
+		return 0, ErrHelperNotInited
 	}
 	conn, err := counter.proxy.GetConn()
 	if err != nil {
@@ -48,7 +48,7 @@ func (counter *distributedcounter) CountM(value int64) (int64, error) {
 //ReSet 重置当前计数器
 func (counter *distributedcounter) ReSet() error {
 	if !counter.proxy.IsOk() {
-		return ErrProxyNotInited
+		return ErrHelperNotInited
 	}
 	conn, err := counter.proxy.GetConn()
 	if err != nil {

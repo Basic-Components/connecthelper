@@ -1,4 +1,4 @@
-package redisproxy
+package redishelper
 
 //NameSpcaeKey 带命名空间的键
 type NameSpcaeKey struct {

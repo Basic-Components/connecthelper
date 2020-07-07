@@ -1,10 +1,10 @@
-package pgproxy
+package pghelper
 
 import (
 	"fmt"
 	"testing"
 
-	pg "github.com/go-pg/pg/v9"
+	pg "github.com/go-pg/pg/v10"
 	"github.com/stretchr/testify/assert"
 )
 

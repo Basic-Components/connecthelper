@@ -1,10 +1,9 @@
-module github.com/Basic-Components/connectproxy
+module github.com/Basic-Components/connecthelper
 
 go 1.13
 
 require (
-	github.com/bgentry/speakeasy v0.1.0 // indirect
-	github.com/cockroachdb/datadriven v0.0.0-20190809214429-80d97fb3cbaa // indirect
+	github.com/Basic-Components/loggerhelper v0.0.1
 	github.com/confluentinc/confluent-kafka-go v1.4.2
 	github.com/coreos/etcd v3.3.20+incompatible // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
@@ -15,6 +14,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/dustin/go-humanize v0.0.0-20171111073723-bb3d318650d4 // indirect
 	github.com/fatih/color v1.7.0 // indirect
+	github.com/go-pg/pg/v10 v10.0.0-beta.5
 	github.com/go-pg/pg/v9 v9.1.6
 	github.com/go-redis/redis/v7 v7.2.0
 	github.com/gogo/protobuf v1.3.1 // indirect
@@ -33,11 +33,11 @@ require (
 	github.com/mattn/go-runewidth v0.0.2 // indirect
 	github.com/olekukonko/tablewriter v0.0.0-20170122224234-a0225b3f23b5 // indirect
 	github.com/prometheus/client_golang v1.0.0 // indirect
-	github.com/sirupsen/logrus v1.2.0
+	github.com/sirupsen/logrus v1.6.0
 	github.com/soheilhy/cmux v0.1.4 // indirect
 	github.com/spf13/cobra v0.0.3 // indirect
 	github.com/spf13/pflag v1.0.1 // indirect
-	github.com/stretchr/testify v1.5.1
+	github.com/stretchr/testify v1.6.1
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20170815181823-89b8d40f7ca8 // indirect
 	github.com/urfave/cli v1.20.0 // indirect
 	github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 // indirect
@@ -45,7 +45,6 @@ require (
 	go.etcd.io/etcd v3.3.20+incompatible
 	go.uber.org/zap v1.15.0 // indirect
 	golang.org/x/time v0.0.0-20180412165947-fbb02b2291d2 // indirect
-	google.golang.org/grpc v1.29.1 // indirect
 	gopkg.in/cheggaaa/pb.v1 v1.0.25 // indirect
 	sigs.k8s.io/yaml v1.1.0 // indirect
 )

@@ -1,4 +1,4 @@
-package redisproxy
+package redishelper
 
 import (
 	"context"
@@ -11,14 +11,14 @@ import (
 
 //StreamTopic 流主题
 type StreamTopic struct {
-	proxy  *redisProxy
+	proxy  *redisHelper
 	Name   string
 	MaxLen int64
 	Strict bool //maxlen with ~
 }
 
 //NewStreamTopic 新建一个流主题
-func NewStreamTopic(proxy *redisProxy, name string, maxlen int64, strict bool) *StreamTopic {
+func NewStreamTopic(proxy *redisHelper, name string, maxlen int64, strict bool) *StreamTopic {
 	s := new(StreamTopic)
 	s.Name = name
 	s.proxy = proxy
@@ -30,7 +30,7 @@ func NewStreamTopic(proxy *redisProxy, name string, maxlen int64, strict bool) *
 //Len 查看主题流的长度
 func (topic *StreamTopic) Len() (int64, error) {
 	if !topic.proxy.IsOk() {
-		return 0, ErrProxyNotInited
+		return 0, ErrHelperNotInited
 	}
 	conn, err := topic.proxy.GetConn()
 	if err != nil {
@@ -42,7 +42,7 @@ func (topic *StreamTopic) Len() (int64, error) {
 //Trim 为主题扩容
 func (topic *StreamTopic) Trim(count int64) (int64, error) {
 	if !topic.proxy.IsOk() {
-		return 0, ErrProxyNotInited
+		return 0, ErrHelperNotInited
 	}
 	conn, err := topic.proxy.GetConn()
 	if err != nil {
@@ -54,7 +54,7 @@ func (topic *StreamTopic) Trim(count int64) (int64, error) {
 //Delete 设置标志位标识删除主题流中指定id的数据
 func (topic *StreamTopic) Delete(ids ...string) error {
 	if !topic.proxy.IsOk() {
-		return ErrProxyNotInited
+		return ErrHelperNotInited
 	}
 	conn, err := topic.proxy.GetConn()
 	if err != nil {
@@ -70,7 +70,7 @@ func (topic *StreamTopic) Delete(ids ...string) error {
 //Range 获取消息列表,会自动过滤已经删除的消息,注意-表示最小值, +表示最大值
 func (topic *StreamTopic) Range(start, stop string) ([]redis.XMessage, error) {
 	if !topic.proxy.IsOk() {
-		return nil, ErrProxyNotInited
+		return nil, ErrHelperNotInited
 	}
 	conn, err := topic.proxy.GetConn()
 	if err != nil {
@@ -82,7 +82,7 @@ func (topic *StreamTopic) Range(start, stop string) ([]redis.XMessage, error) {
 //Publish 向主题流发送消息
 func (topic *StreamTopic) Publish(value map[string]interface{}) (string, error) {
 	if !topic.proxy.IsOk() {
-		return "", ErrProxyNotInited
+		return "", ErrHelperNotInited
 	}
 	conn, err := topic.proxy.GetConn()
 	if err != nil {
@@ -112,7 +112,7 @@ func (topic *StreamTopic) Publish(value map[string]interface{}) (string, error) 
 //GroupInfos 获取主题流中注册的消费者组信息
 func (topic *StreamTopic) GroupInfos() ([]redis.XInfoGroups, error) {
 	if !topic.proxy.IsOk() {
-		return nil, ErrProxyNotInited
+		return nil, ErrHelperNotInited
 	}
 	conn, err := topic.proxy.GetConn()
 	if err != nil {
@@ -157,7 +157,7 @@ func (topic *StreamTopic) HasGroups(groupnames []string) (bool, error) {
 //CreateGroup 为指定消费者在指定的topic上创建消费者组
 func (topic *StreamTopic) CreateGroup(groupname, start string) (string, error) {
 	if !topic.proxy.IsOk() {
-		return "", ErrProxyNotInited
+		return "", ErrHelperNotInited
 	}
 	conn, err := topic.proxy.GetConn()
 	if err != nil {
@@ -169,7 +169,7 @@ func (topic *StreamTopic) CreateGroup(groupname, start string) (string, error) {
 //DeleteGroup 为指定消费者在指定的topic上删除消费者组
 func (topic *StreamTopic) DeleteGroup(groupname string) (int64, error) {
 	if !topic.proxy.IsOk() {
-		return 0, ErrProxyNotInited
+		return 0, ErrHelperNotInited
 	}
 	conn, err := topic.proxy.GetConn()
 	if err != nil {
@@ -188,7 +188,7 @@ func (topic *StreamTopic) DeleteGroup(groupname string) (int64, error) {
 //DeleteConsumer 在指定的topic上删除指定消费者组中的指定消费者
 func (topic *StreamTopic) DeleteConsumer(groupname string, consumername string) (int64, error) {
 	if !topic.proxy.IsOk() {
-		return 0, ErrProxyNotInited
+		return 0, ErrHelperNotInited
 	}
 	conn, err := topic.proxy.GetConn()
 	if err != nil {
@@ -207,7 +207,7 @@ func (topic *StreamTopic) DeleteConsumer(groupname string, consumername string) 
 //SetGroupID 设置指定消费者组在主题流中的读取起始位置
 func (topic *StreamTopic) SetGroupID(groupname string, start string) (string, error) {
 	if !topic.proxy.IsOk() {
-		return "", ErrProxyNotInited
+		return "", ErrHelperNotInited
 	}
 	conn, err := topic.proxy.GetConn()
 	if err != nil {
@@ -226,7 +226,7 @@ func (topic *StreamTopic) SetGroupID(groupname string, start string) (string, er
 //Pending 查看消费组中等待确认的消息列表
 func (topic *StreamTopic) Pending(groupname string) (*redis.XPending, error) {
 	if !topic.proxy.IsOk() {
-		return nil, ErrProxyNotInited
+		return nil, ErrHelperNotInited
 	}
 	conn, err := topic.proxy.GetConn()
 	if err != nil {
@@ -245,7 +245,7 @@ func (topic *StreamTopic) Pending(groupname string) (*redis.XPending, error) {
 //Move 查看消费组中等待确认的消息列表
 func (topic *StreamTopic) Move(groupname string, toconsumer string, minIdle time.Duration, ids ...string) ([]redis.XMessage, error) {
 	if !topic.proxy.IsOk() {
-		return nil, ErrProxyNotInited
+		return nil, ErrHelperNotInited
 	}
 	conn, err := topic.proxy.GetConn()
 	if err != nil {
@@ -278,7 +278,7 @@ func newStreamProducerFromStreamTopic(topic *StreamTopic) *streamProducer {
 	return s
 }
 
-func newStreamProducer(proxy *redisProxy, topic string, maxlen int64, strict bool) *streamProducer {
+func newStreamProducer(proxy *redisHelper, topic string, maxlen int64, strict bool) *streamProducer {
 	t := NewStreamTopic(proxy, topic, maxlen, strict)
 	s := newStreamProducerFromStreamTopic(t)
 	return s
@@ -292,7 +292,7 @@ func (producer *streamProducer) Publish(value map[string]interface{}) (string, e
 type streamConsumer struct {
 	stopch        chan error
 	isSubscribed  bool
-	proxy         *redisProxy   //使用的redis连接代理
+	proxy         *redisHelper  //使用的redis连接代理
 	Topics        []string      //监听的topic
 	Count         int64         //一次读取多少条消息
 	Block         time.Duration //若有设置,阻塞等待消息,等待超时为设置的值
@@ -302,7 +302,7 @@ type streamConsumer struct {
 	NoAck         bool          //是否不确认消息收到与否,仅对消费组形式有效
 }
 
-func newStreamConsumer(proxy *redisProxy, topics []string, start string, count int64, block int64, name string, noack bool, group ...string) *streamConsumer {
+func newStreamConsumer(proxy *redisHelper, topics []string, start string, count int64, block int64, name string, noack bool, group ...string) *streamConsumer {
 	s := new(streamConsumer)
 	s.stopch = make(chan error)
 	s.isSubscribed = false
@@ -379,7 +379,7 @@ func (consumer *streamConsumer) readOne(ctx context.Context, conn *redis.Client)
 //Read 订阅流,count可以
 func (consumer *streamConsumer) Read(ctx context.Context) ([]redis.XStream, error) {
 	if !consumer.proxy.IsOk() {
-		return nil, ErrProxyNotInited
+		return nil, ErrHelperNotInited
 	}
 	conn, err := consumer.proxy.GetConn()
 	if err != nil {
@@ -391,7 +391,7 @@ func (consumer *streamConsumer) Read(ctx context.Context) ([]redis.XStream, erro
 //Subscribe 订阅流,count可以
 func (consumer *streamConsumer) Ack(ctx context.Context, ids ...string) error {
 	if !consumer.proxy.IsOk() {
-		return ErrProxyNotInited
+		return ErrHelperNotInited
 	}
 	conn, err := consumer.proxy.GetConn()
 	if err != nil {
@@ -412,8 +412,8 @@ func (consumer *streamConsumer) Ack(ctx context.Context, ids ...string) error {
 func (consumer *streamConsumer) Subscribe(ctx context.Context) (<-chan redis.XStream, error) {
 
 	if !consumer.proxy.IsOk() {
-		fmt.Println("consumer.proxy.IsOk error: ", ErrProxyNotInited.Error())
-		return nil, ErrProxyNotInited
+		fmt.Println("consumer.proxy.IsOk error: ", ErrHelperNotInited.Error())
+		return nil, ErrHelperNotInited
 	}
 	if !(consumer.Block >= 0) {
 		fmt.Println("consumer must blocked", ErrStreamConsumerNotBlocked.Error())

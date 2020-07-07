@@ -1,4 +1,4 @@
-package redisproxy
+package redishelper
 
 import (
 	"github.com/go-redis/redis/v7"
@@ -6,11 +6,11 @@ import (
 
 // distributedLock 分布式锁结构
 type bitmap struct {
-	proxy *redisProxy
+	proxy *redisHelper
 	key   string
 }
 
-func newBitmap(proxy *redisProxy, key string) *bitmap {
+func newBitmap(proxy *redisHelper, key string) *bitmap {
 	bm := new(bitmap)
 	bm.key = key
 	bm.proxy = proxy
@@ -20,7 +20,7 @@ func newBitmap(proxy *redisProxy, key string) *bitmap {
 // IsSetted 查看offset位置是否已被设置
 func (bm *bitmap) IsSetted(offset int64) (bool, error) {
 	if !bm.proxy.IsOk() {
-		return false, ErrProxyNotInited
+		return false, ErrHelperNotInited
 	}
 	conn, err := bm.proxy.GetConn()
 	if err != nil {
@@ -39,7 +39,7 @@ func (bm *bitmap) IsSetted(offset int64) (bool, error) {
 // CountSetted 查看所有已经被设置为1的个数
 func (bm *bitmap) CountSetted() (int64, error) {
 	if !bm.proxy.IsOk() {
-		return 0, ErrProxyNotInited
+		return 0, ErrHelperNotInited
 	}
 	conn, err := bm.proxy.GetConn()
 	if err != nil {
@@ -55,7 +55,7 @@ func (bm *bitmap) CountSetted() (int64, error) {
 // CountSetted 查看所有已经被设置为1的个数
 func (bm *bitmap) CountSettedWithRange(start, end int64) (int64, error) {
 	if !bm.proxy.IsOk() {
-		return 0, ErrProxyNotInited
+		return 0, ErrHelperNotInited
 	}
 	conn, err := bm.proxy.GetConn()
 	if err != nil {
@@ -78,7 +78,7 @@ func (bm *bitmap) CountSettedWithRange(start, end int64) (int64, error) {
 // Set 将某位offset 设置为1,如果已经被设置了也不会报错
 func (bm *bitmap) Set(offset int64) error {
 	if !bm.proxy.IsOk() {
-		return ErrProxyNotInited
+		return ErrHelperNotInited
 	}
 	conn, err := bm.proxy.GetConn()
 	if err != nil {
@@ -94,7 +94,7 @@ func (bm *bitmap) Set(offset int64) error {
 // SetM 将多位offset 设置为1,如果已经被设置了也不会报错
 func (bm *bitmap) SetM(offsets []int64) error {
 	if !bm.proxy.IsOk() {
-		return ErrProxyNotInited
+		return ErrHelperNotInited
 	}
 	conn, err := bm.proxy.GetConn()
 	if err != nil {
@@ -114,7 +114,7 @@ func (bm *bitmap) SetM(offsets []int64) error {
 // UnSet 将某位offset 取消设置,即设置为0,如果本来就没有被设置也不会报错
 func (bm *bitmap) UnSet(offset int64) error {
 	if !bm.proxy.IsOk() {
-		return ErrProxyNotInited
+		return ErrHelperNotInited
 	}
 	conn, err := bm.proxy.GetConn()
 	if err != nil {
@@ -130,7 +130,7 @@ func (bm *bitmap) UnSet(offset int64) error {
 // UnSetM 将多位offset 设置为0,如果已经被设置了也不会报错
 func (bm *bitmap) UnSetM(offsets []int64) error {
 	if !bm.proxy.IsOk() {
-		return ErrProxyNotInited
+		return ErrHelperNotInited
 	}
 	conn, err := bm.proxy.GetConn()
 	if err != nil {
@@ -165,7 +165,7 @@ func getBitSet(redisResponse []byte) []bool {
 
 func (bm *bitmap) SettedOffsets() ([]int64, error) {
 	if !bm.proxy.IsOk() {
-		return nil, ErrProxyNotInited
+		return nil, ErrHelperNotInited
 	}
 	conn, err := bm.proxy.GetConn()
 	if err != nil {

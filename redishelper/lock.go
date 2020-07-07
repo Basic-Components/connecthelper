@@ -1,4 +1,4 @@
-package redisproxy
+package redishelper
 
 import (
 	"time"
@@ -6,12 +6,12 @@ import (
 
 // distributedLock 分布式锁结构
 type distributedLock struct {
-	proxy   *redisProxy
+	proxy   *redisHelper
 	key     string
 	timeout int64
 }
 
-func newLock(proxy *redisProxy, key string, timeout int64) *distributedLock {
+func newLock(proxy *redisHelper, key string, timeout int64) *distributedLock {
 	lock := new(distributedLock)
 	lock.key = key
 	lock.timeout = timeout
@@ -22,7 +22,7 @@ func newLock(proxy *redisProxy, key string, timeout int64) *distributedLock {
 // Release 释放锁,锁不存在也不会报错
 func (lock *distributedLock) Release() error {
 	if !lock.proxy.IsOk() {
-		return ErrProxyNotInited
+		return ErrHelperNotInited
 	}
 	conn, err := lock.proxy.GetConn()
 	if err != nil {
@@ -38,7 +38,7 @@ func (lock *distributedLock) Release() error {
 // SetLock 设置锁
 func (lock *distributedLock) Acquire() error {
 	if !lock.proxy.IsOk() {
-		return ErrProxyNotInited
+		return ErrHelperNotInited
 	}
 	conn, err := lock.proxy.GetConn()
 	if err != nil {
@@ -57,7 +57,7 @@ func (lock *distributedLock) Acquire() error {
 //IsLocked 判断锁是否存在
 func (lock *distributedLock) IsLocked() (bool, error) {
 	if !lock.proxy.IsOk() {
-		return false, ErrProxyNotInited
+		return false, ErrHelperNotInited
 	}
 	conn, err := lock.proxy.GetConn()
 	if err != nil {

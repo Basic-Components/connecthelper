@@ -1,4 +1,4 @@
-package redisproxy
+package redishelper
 
 import (
 	"context"
@@ -9,13 +9,13 @@ import (
 
 //PubSubTopic 流主题
 type PubSubTopic struct {
-	proxy  *redisProxy
+	proxy  *redisHelper
 	Name   string
 	pubsub *redis.PubSub
 }
 
 //NewPubSubTopic 新建一个PubSub主题
-func NewPubSubTopic(proxy *redisProxy, name string) *PubSubTopic {
+func NewPubSubTopic(proxy *redisHelper, name string) *PubSubTopic {
 	s := new(PubSubTopic)
 	s.Name = name
 	s.proxy = proxy
@@ -25,7 +25,7 @@ func NewPubSubTopic(proxy *redisProxy, name string) *PubSubTopic {
 //Publish 向发布订阅主题发送消息
 func (topic *PubSubTopic) Publish(value interface{}) (int64, error) {
 	if !topic.proxy.IsOk() {
-		return 0, ErrProxyNotInited
+		return 0, ErrHelperNotInited
 	}
 	conn, err := topic.proxy.GetConn()
 	if err != nil {
@@ -41,7 +41,7 @@ func (topic *PubSubTopic) Publish(value interface{}) (int64, error) {
 
 func (topic *PubSubTopic) Subscribe(ctx context.Context) (<-chan *redis.Message, error) {
 	if !topic.proxy.IsOk() {
-		return nil, ErrProxyNotInited
+		return nil, ErrHelperNotInited
 	}
 	conn, err := topic.proxy.GetConn()
 	if err != nil {
@@ -84,7 +84,7 @@ func newPubSubProducerFromPubSubTopic(topic *PubSubTopic) *pubsubProducer {
 	return s
 }
 
-func newPubSubProducer(proxy *redisProxy, topic string) *pubsubProducer {
+func newPubSubProducer(proxy *redisHelper, topic string) *pubsubProducer {
 	t := NewPubSubTopic(proxy, topic)
 	s := newPubSubProducerFromPubSubTopic(t)
 	return s
@@ -96,12 +96,12 @@ func (producer *pubsubProducer) Publish(value interface{}) (int64, error) {
 }
 
 type pubsubConsumer struct {
-	proxy  *redisProxy //使用的redis连接代理
-	Topics []string    //监听的topic
+	proxy  *redisHelper //使用的redis连接代理
+	Topics []string     //监听的topic
 	pubsub *redis.PubSub
 }
 
-func newPubSubConsumer(proxy *redisProxy, topics []string) *pubsubConsumer {
+func newPubSubConsumer(proxy *redisHelper, topics []string) *pubsubConsumer {
 	s := new(pubsubConsumer)
 	s.proxy = proxy
 	s.Topics = topics
@@ -111,7 +111,7 @@ func newPubSubConsumer(proxy *redisProxy, topics []string) *pubsubConsumer {
 //Read 订阅流,count可以
 func (consumer *pubsubConsumer) Subscribe(ctx context.Context) (<-chan *redis.Message, error) {
 	if !consumer.proxy.IsOk() {
-		return nil, ErrProxyNotInited
+		return nil, ErrHelperNotInited
 	}
 	conn, err := consumer.proxy.GetConn()
 	if err != nil {
