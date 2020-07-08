@@ -111,9 +111,9 @@ func (proxy *kafkaProducerHelper) ListenResult() error {
 		case *kafka.Message:
 			{
 				if ev.TopicPartition.Error != nil {
-					log.Error(map[string]interface{}{"KafkaURL": ins.URLS, "TopicPartition": ev.TopicPartition}, "Delivery failed to kafka")
+					log.Error(map[string]interface{}{"KafkaConf": proxy.Options, "TopicPartition": ev.TopicPartition}, "Delivery failed to kafka")
 				} else {
-					log.Info(map[string]interface{}{"KafkaURL": ins.URLS, "TopicPartition": ev.TopicPartition}, "Delivered message to kafka")
+					log.Info(map[string]interface{}{"KafkaConf": proxy.Options, "TopicPartition": ev.TopicPartition}, "Delivered message to kafka")
 				}
 			}
 		default:
@@ -126,7 +126,7 @@ func (proxy *kafkaProducerHelper) ListenResult() error {
 }
 
 //PublishSync 快速发布消息的同步接口
-func (proxy *kafkaProducerHelper) PublishSync(topic string, value []byte, key []byte) error {
+func (proxy *kafkaProducerHelper) PublishSync(topic string, key []byte, value []byte) error {
 	p, err := proxy.GetConn()
 	if err != nil {
 		return err
@@ -164,11 +164,12 @@ func (proxy *kafkaProducerHelper) publishAsync(topic string, key []byte, value [
 		}
 	}
 	p.ProduceChannel() <- &msg
+	return nil
 }
 
 //PublishAsync 快速发布消息的异步接口
-func (proxy *kafkaProducerHelper) PublishAsync(topic string, value []byte) {
-	go proxy.publishAsync(topic, value)
+func (proxy *kafkaProducerHelper) PublishAsync(topic string, key []byte, value []byte) {
+	go proxy.publishAsync(topic, key, value)
 }
 
 var ProducerHelper = NewProducerHelper()
