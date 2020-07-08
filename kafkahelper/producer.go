@@ -97,7 +97,7 @@ func (proxy *kafkaProducerHelper) InitFromURL(address string, batch_producer boo
 		"queue.buffering.max.ms": queue_buffer_max_ms,
 		"acks":                   acks,
 	}
-	err = proxy.InitFromOptions(options)
+	err := proxy.InitFromOptions(options)
 	return err
 }
 

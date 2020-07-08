@@ -14,7 +14,7 @@ type KafkaConsumerHelperCallback func(consumer *kafka.Consumer) error
 // kafkaProducerHelper kafka生产者的代理
 type kafkaConsumerHelper struct {
 	helperLock sync.RWMutex //代理的锁
-	lock       sync.RWMutex
+	lock       sync.WaitGroup
 	Topics     []string
 	Options    *kafka.ConfigMap
 	conns      []*kafka.Consumer
@@ -27,7 +27,7 @@ func NewConsumerHelper() *kafkaConsumerHelper {
 	proxy := new(kafkaConsumerHelper)
 	proxy.conns = []*kafka.Consumer{}
 	proxy.helperLock = sync.RWMutex{}
-	proxy.lock = sync.RWMutex{}
+	proxy.lock = sync.WaitGroup{}
 	return proxy
 }
 
@@ -81,7 +81,7 @@ func (proxy *kafkaConsumerHelper) Init(clis []*kafka.Consumer) error {
 	if proxy.IsOk() {
 		return ErrHelperAlreadyInited
 	}
-	for cli := range clis {
+	for _, cli := range clis {
 		proxy.AppendConnect(cli)
 	}
 
@@ -95,7 +95,7 @@ func (proxy *kafkaConsumerHelper) InitFromOptions(options *kafka.ConfigMap, topi
 	proxy.Topics = topics
 	clis := []*kafka.Consumer{}
 	for i := int32(0); i < workers; i++ {
-		db, err := kafka.NewProducer(options)
+		db, err := kafka.NewConsumer(options)
 		if err != nil {
 			return err
 		}
@@ -112,7 +112,7 @@ func (proxy *kafkaConsumerHelper) InitFromURL(address, groupid, auto_offset_rese
 		"auto.offset.reset": auto_offset_reset,
 		"isolation.level":   isolation_level,
 	}
-	err = proxy.InitFromOptions(options, topics, workers)
+	err := proxy.InitFromOptions(options, topics, workers)
 	return err
 }
 
@@ -134,7 +134,7 @@ func (proxy *kafkaConsumerHelper) listener(index int, Consumer *kafka.Consumer, 
 }
 
 func (proxy *kafkaConsumerHelper) Listen(handdler KafkaConsumerHanddler) {
-	for index, Consumer := range ins.conns {
+	for index, Consumer := range proxy.conns {
 		proxy.lock.Add(1)
 		go proxy.listener(index, Consumer, handdler)
 	}
