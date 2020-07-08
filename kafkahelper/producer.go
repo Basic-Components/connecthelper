@@ -89,9 +89,9 @@ func (proxy *kafkaProducerHelper) InitFromOptions(options *kafka.ConfigMap) erro
 }
 
 // InitFromURL 使用配置给代理赋值客户端实例
-func (proxy *kafkaProducerHelper) InitFromURL(address string,batch_producer bool,queue_buffer_max_ms,acks int) error {
+func (proxy *kafkaProducerHelper) InitFromURL(address string, batch_producer bool, queue_buffer_max_ms, acks int) error {
 	options := &kafka.ConfigMap{
-		"bootstrap.servers": address
+		"bootstrap.servers":      address,
 		"go.delivery.reports":    false,
 		"go.batch.producer":      batch_producer,
 		"queue.buffering.max.ms": queue_buffer_max_ms,
@@ -101,7 +101,7 @@ func (proxy *kafkaProducerHelper) InitFromURL(address string,batch_producer bool
 	return err
 }
 
-func(proxy *kafkaProducerHelper) ListenResult() error{
+func (proxy *kafkaProducerHelper) ListenResult() error {
 	p, err := proxy.GetConn()
 	if err != nil {
 		return err
@@ -155,7 +155,7 @@ func (proxy *kafkaProducerHelper) publishAsync(topic string, key []byte, value [
 		msg = kafka.Message{
 			TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
 			Value:          value,
-			Key:key
+			Key:            key,
 		}
 	} else {
 		msg = kafka.Message{
@@ -165,10 +165,10 @@ func (proxy *kafkaProducerHelper) publishAsync(topic string, key []byte, value [
 	}
 	p.ProduceChannel() <- &msg
 }
+
 //PublishAsync 快速发布消息的异步接口
 func (proxy *kafkaProducerHelper) PublishAsync(topic string, value []byte) {
 	go proxy.publishAsync(topic, value)
 }
-
 
 var ProducerHelper = NewProducerHelper()
