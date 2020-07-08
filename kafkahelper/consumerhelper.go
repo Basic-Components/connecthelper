@@ -44,28 +44,28 @@ func (proxy *kafkaConsumerHelper) GetConns() ([]*kafka.Consumer, error) {
 	if !proxy.IsOk() {
 		return proxy.conns, ErrHelperNotInited
 	}
-	proxy.proxyLock.RLock()
-	defer proxy.proxyLock.RUnlock()
+	proxy.helperLock.RLock()
+	defer proxy.helperLock.RUnlock()
 	return proxy.conns, nil
 }
 
 // Close 关闭kafka监听
 func (proxy *kafkaConsumerHelper) Close() {
 	if proxy.IsOk() {
-		proxy.proxyLock.Lock()
+		proxy.helperLock.Lock()
 		for _, conn := range proxy.conns {
-			proxy.conn.Close()
+			conn.Close()
 		}
 		proxy.conns = nil
-		proxy.proxyLock.Unlock()
+		proxy.helperLock.Unlock()
 	}
 }
 
 //SetConnect 设置连接的客户端
 func (proxy *kafkaConsumerHelper) AppendConnect(cli *kafka.Consumer) {
-	proxy.proxyLock.Lock()
+	proxy.helperLock.Lock()
 	proxy.conns = append(proxy.conns, cli)
-	proxy.proxyLock.Unlock()
+	proxy.helperLock.Unlock()
 	for _, cb := range proxy.callBacks {
 		err := cb(cli)
 		if err != nil {
