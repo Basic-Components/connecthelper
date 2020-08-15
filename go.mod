@@ -17,6 +17,7 @@ require (
 	github.com/go-pg/pg/v10 v10.0.0-beta.5
 	github.com/go-pg/pg/v9 v9.1.6
 	github.com/go-redis/redis/v7 v7.2.0
+	github.com/go-redis/redis/v8 v8.0.0-beta.7
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/groupcache v0.0.0-20160516000752-02826c3e7903 // indirect
 	github.com/google/btree v1.0.0 // indirect

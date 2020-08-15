@@ -6,7 +6,7 @@ import (
 	"time"
 
 	set "github.com/deckarep/golang-set"
-	"github.com/go-redis/redis/v7"
+	"github.com/go-redis/redis/v8"
 )
 
 //StreamTopic 流主题

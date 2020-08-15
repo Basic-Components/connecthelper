@@ -10,5 +10,15 @@
 | ------------ | -------------------------------------------------- | ------------------------------------------------------ |
 | `pghelper`    | `github.com/go-pg/pg/v10`                           | `Helper`                                                |
 | `etcd3helper` | `go.etcd.io/etcd/clientv3`                         | `Helper`                                                |
-| `redishelper` | `github.com/go-redis/redis`                        | `Helper`                                                |
+| `redishelper` | `github.com/go-redis/redis/v8`                        | `Helper`                                                |
 | `kafkahelper` | `github.com/confluentinc/confluent-kafka-go/kafka` | `ProducerHelper|ConsumerHelper`                          |
+
+## ChangeLog
+
+### v0.0.5
+
++ 将`redishelper`的代理的模块从`github.com/go-redis/redis/v7`替换为`github.com/go-redis/redis/v8`
+
+### v0.0.4
+
++ 实现了基本功能

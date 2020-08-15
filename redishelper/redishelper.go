@@ -5,7 +5,7 @@ import (
 
 	"sync"
 
-	"github.com/go-redis/redis/v7"
+	"github.com/go-redis/redis/v8"
 )
 
 // redisHelperCallback redis操作的回调函数
