@@ -3,7 +3,7 @@ package kafkahelper
 import (
 	"sync"
 
-	log "github.com/Basic-Components/loggerhelper"
+	log "github.com/Golang-Tools/loggerhelper"
 
 	kafka "github.com/confluentinc/confluent-kafka-go/kafka"
 )
@@ -69,9 +69,9 @@ func (proxy *kafkaConsumerHelper) AppendConnect(cli *kafka.Consumer) {
 	for _, cb := range proxy.callBacks {
 		err := cb(cli)
 		if err != nil {
-			log.Error(map[string]interface{}{"err": err}, "regist callback get error")
+			log.Error("regist callback get error", log.Dict{"err": err})
 		} else {
-			log.Info(nil, "regist callback done")
+			log.Info("regist callback done")
 		}
 	}
 }
@@ -122,11 +122,11 @@ type KafkaConsumerHanddler func(msg *kafka.Message)
 func (proxy *kafkaConsumerHelper) listener(index int, Consumer *kafka.Consumer, handdler KafkaConsumerHanddler) {
 	Consumer.SubscribeTopics(proxy.Topics, nil)
 	defer Consumer.Unsubscribe()
-	log.Info(map[string]interface{}{"no": index}, "start listening")
+	log.Info("start listening", log.Dict{"no": index})
 	for {
 		msg, err := Consumer.ReadMessage(-1)
 		if err != nil {
-			log.Error(map[string]interface{}{"err": err}, "get msg error")
+			log.Error("get msg error", log.Dict{"err": err})
 		}
 		go handdler(msg)
 	}

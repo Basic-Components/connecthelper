@@ -1,10 +1,7 @@
 package redishelper
 
 import (
-	"context"
-	"time"
-
-	"github.com/go-redis/redis/v8"
+	"github.com/go-redis/redis/v7"
 )
 
 // distributedLock 分布式锁结构
@@ -21,7 +18,7 @@ func newBitmap(proxy *redisHelper, key string) *bitmap {
 }
 
 // IsSetted 查看offset位置是否已被设置
-func (bm *bitmap) IsSetted(offset int64, timeout time.Duration) (bool, error) {
+func (bm *bitmap) IsSetted(offset int64) (bool, error) {
 	if !bm.proxy.IsOk() {
 		return false, ErrHelperNotInited
 	}
@@ -29,17 +26,18 @@ func (bm *bitmap) IsSetted(offset int64, timeout time.Duration) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	var ctx context.Context
-	var cancel context.CancelFunc
-	if timeout == 0 {
-		ctx, cancel = context.WithTimeout(context.Background(), time.Second*2)
-		defer cancel()
-	} else {
-		ctx, cancel = context.WithCancel(context.Background())
-		defer cancel()
-	}
+	// var ctx context.Context
+	// var cancel context.CancelFunc
+	// if timeout == 0 {
+	// 	ctx, cancel = context.WithTimeout(context.Background(), time.Second*2)
+	// 	defer cancel()
+	// } else {
+	// 	ctx, cancel = context.WithCancel(context.Background())
+	// 	defer cancel()
+	// }
 
-	res, err := conn.GetBit(ctx, bm.key, offset).Result()
+	// res, err := conn.GetBit(ctx, bm.key, offset).Result()
+	res, err := conn.GetBit(bm.key, offset).Result()
 	if err != nil {
 		return false, err
 	}

@@ -3,7 +3,7 @@ package redishelper
 import (
 	"fmt"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/go-redis/redis/v7"
 )
 
 type ranker struct {

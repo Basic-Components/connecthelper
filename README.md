@@ -17,7 +17,7 @@
 
 ### v0.0.5
 
-+ 将`redishelper`的代理的模块从`github.com/go-redis/redis/v7`替换为`github.com/go-redis/redis/v8`
+替换log包
 
 ### v0.0.4
 

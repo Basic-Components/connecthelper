@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	log "github.com/Basic-Components/loggerhelper"
+	log "github.com/Golang-Tools/loggerhelper"
 
 	pg "github.com/go-pg/pg/v10"
 )
@@ -66,9 +66,9 @@ func (proxy *dbHelper) SetConnect(cli *pg.DB) {
 	for _, cb := range proxy.callBacks {
 		err := cb(proxy.conn)
 		if err != nil {
-			log.Error(map[string]interface{}{"err": err}, "regist callback get error")
+			log.Error("regist callback get error", log.Dict{"err": err})
 		} else {
-			log.Info(nil, "regist callback done")
+			log.Info("regist callback done")
 		}
 	}
 }
@@ -101,7 +101,7 @@ func parseDBURL(address string) (*pg.Options, error) {
 	if u.RawQuery != "" {
 		v, err := url.ParseQuery(u.RawQuery)
 		if err != nil {
-			log.Error(map[string]interface{}{"err": err}, "ParseQuery error")
+			log.Error("ParseQuery error", log.Dict{"err": err})
 			return result, nil
 		}
 		for key, value := range v {
@@ -110,7 +110,7 @@ func parseDBURL(address string) (*pg.Options, error) {
 				{
 					maxretries, err := strconv.Atoi(value[0])
 					if err != nil {
-						log.Error(map[string]interface{}{"err": err, "value": value}, "maxretries error")
+						log.Error("maxretries error", log.Dict{"err": err, "value": value})
 					} else {
 						result.MaxRetries = maxretries
 					}
@@ -124,14 +124,14 @@ func parseDBURL(address string) (*pg.Options, error) {
 					case "false":
 						result.RetryStatementTimeout = false
 					default:
-						log.Error(nil, "unknown value for RetryStatementTimeout")
+						log.Error("unknown value for RetryStatementTimeout")
 					}
 				}
 			case "minretrybackoff":
 				{
 					number, err := strconv.Atoi(value[0])
 					if err != nil {
-						log.Error(map[string]interface{}{"err": err, "value": value}, "minretrybackoff error")
+						log.Error("minretrybackoff error", log.Dict{"err": err, "value": value})
 					} else {
 						result.MinRetryBackoff = time.Duration(number) * time.Second
 					}
@@ -140,7 +140,7 @@ func parseDBURL(address string) (*pg.Options, error) {
 				{
 					number, err := strconv.Atoi(value[0])
 					if err != nil {
-						log.Error(map[string]interface{}{"err": err, "value": value}, "maxretrybackoff error")
+						log.Error("maxretrybackoff error", log.Dict{"err": err, "value": value})
 					} else {
 						result.MaxRetryBackoff = time.Duration(number) * time.Second
 					}
@@ -149,7 +149,7 @@ func parseDBURL(address string) (*pg.Options, error) {
 				{
 					number, err := strconv.Atoi(value[0])
 					if err != nil {
-						log.Error(map[string]interface{}{"err": err, "value": value}, "dialtimeout error")
+						log.Error("dialtimeout error", log.Dict{"err": err, "value": value})
 					} else {
 						result.DialTimeout = time.Duration(number) * time.Second
 					}
@@ -158,7 +158,7 @@ func parseDBURL(address string) (*pg.Options, error) {
 				{
 					number, err := strconv.Atoi(value[0])
 					if err != nil {
-						log.Error(map[string]interface{}{"err": err, "value": value}, "readtimeout error")
+						log.Error("readtimeout error", log.Dict{"err": err, "value": value})
 					} else {
 						result.ReadTimeout = time.Duration(number) * time.Second
 					}
@@ -167,7 +167,7 @@ func parseDBURL(address string) (*pg.Options, error) {
 				{
 					number, err := strconv.Atoi(value[0])
 					if err != nil {
-						log.Error(map[string]interface{}{"err": err, "value": value}, "writetimeout error")
+						log.Error("writetimeout error", log.Dict{"err": err, "value": value})
 					} else {
 						result.WriteTimeout = time.Duration(number) * time.Second
 					}
@@ -176,7 +176,7 @@ func parseDBURL(address string) (*pg.Options, error) {
 				{
 					number, err := strconv.Atoi(value[0])
 					if err != nil {
-						log.Error(map[string]interface{}{"err": err, "value": value}, "maxconnage error")
+						log.Error("maxconnage error", log.Dict{"err": err, "value": value})
 					} else {
 						result.MaxConnAge = time.Duration(number) * time.Second
 					}
@@ -185,7 +185,7 @@ func parseDBURL(address string) (*pg.Options, error) {
 				{
 					number, err := strconv.Atoi(value[0])
 					if err != nil {
-						log.Error(map[string]interface{}{"err": err, "value": value}, "pooltimeout error")
+						log.Error("pooltimeout error", log.Dict{"err": err, "value": value})
 					} else {
 						result.PoolTimeout = time.Duration(number) * time.Second
 					}
@@ -194,7 +194,7 @@ func parseDBURL(address string) (*pg.Options, error) {
 				{
 					number, err := strconv.Atoi(value[0])
 					if err != nil {
-						log.Error(map[string]interface{}{"err": err, "value": value}, "idletimeout error")
+						log.Error("idletimeout error", log.Dict{"err": err, "value": value})
 					} else {
 						result.IdleTimeout = time.Duration(number) * time.Second
 					}
@@ -203,7 +203,7 @@ func parseDBURL(address string) (*pg.Options, error) {
 				{
 					number, err := strconv.Atoi(value[0])
 					if err != nil {
-						log.Error(map[string]interface{}{"err": err, "value": value}, "idlecheckfrequency error")
+						log.Error("idlecheckfrequency error", log.Dict{"err": err, "value": value})
 					} else {
 						result.IdleCheckFrequency = time.Duration(number) * time.Second
 					}
@@ -212,7 +212,7 @@ func parseDBURL(address string) (*pg.Options, error) {
 				{
 					number, err := strconv.Atoi(value[0])
 					if err != nil {
-						log.Error(map[string]interface{}{"err": err, "value": value}, "PoolSize error")
+						log.Error("PoolSize error", log.Dict{"err": err, "value": value})
 					} else {
 						result.PoolSize = number
 					}
@@ -221,7 +221,7 @@ func parseDBURL(address string) (*pg.Options, error) {
 				{
 					number, err := strconv.Atoi(value[0])
 					if err != nil {
-						log.Error(map[string]interface{}{"err": err, "value": value}, "minidleconns error")
+						log.Error("minidleconns error", log.Dict{"err": err, "value": value})
 					} else {
 						result.MinIdleConns = number
 					}

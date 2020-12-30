@@ -3,7 +3,7 @@ package kafkahelper
 import (
 	"sync"
 
-	log "github.com/Basic-Components/loggerhelper"
+	log "github.com/Golang-Tools/loggerhelper"
 
 	kafka "github.com/confluentinc/confluent-kafka-go/kafka"
 )
@@ -62,9 +62,9 @@ func (proxy *kafkaProducerHelper) SetConnect(cli *kafka.Producer) {
 	for _, cb := range proxy.callBacks {
 		err := cb(proxy.conn)
 		if err != nil {
-			log.Error(map[string]interface{}{"err": err}, "regist callback get error")
+			log.Error("regist callback get error", log.Dict{"err": err})
 		} else {
-			log.Info(nil, "regist callback done")
+			log.Info("regist callback done")
 		}
 	}
 }
@@ -111,14 +111,14 @@ func (proxy *kafkaProducerHelper) ListenResult() error {
 		case *kafka.Message:
 			{
 				if ev.TopicPartition.Error != nil {
-					log.Error(map[string]interface{}{"KafkaConf": proxy.Options, "TopicPartition": ev.TopicPartition}, "Delivery failed to kafka")
+					log.Error("Delivery failed to kafka", log.Dict{"KafkaConf": proxy.Options, "TopicPartition": ev.TopicPartition})
 				} else {
-					log.Info(map[string]interface{}{"KafkaConf": proxy.Options, "TopicPartition": ev.TopicPartition}, "Delivered message to kafka")
+					log.Info("Delivered message to kafka", log.Dict{"KafkaConf": proxy.Options, "TopicPartition": ev.TopicPartition})
 				}
 			}
 		default:
 			{
-				log.Error(map[string]interface{}{"ev": ev}, "kafka producer Ignored event")
+				log.Error("kafka producer Ignored event", log.Dict{"ev": ev})
 			}
 		}
 	}

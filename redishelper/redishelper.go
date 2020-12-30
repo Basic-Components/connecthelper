@@ -1,11 +1,11 @@
 package redishelper
 
 import (
-	log "github.com/Basic-Components/loggerhelper"
+	log "github.com/Golang-Tools/loggerhelper"
 
 	"sync"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/go-redis/redis/v7"
 )
 
 // redisHelperCallback redis操作的回调函数
@@ -61,9 +61,9 @@ func (proxy *redisHelper) SetConnect(cli *redis.Client) {
 	for _, cb := range proxy.callBacks {
 		err := cb(proxy.conn)
 		if err != nil {
-			log.Error(map[string]interface{}{"err": err}, "regist callback get error")
+			log.Error("regist callback get error", log.Dict{"err": err})
 		} else {
-			log.Info(nil, "regist callback done")
+			log.Info("regist callback done")
 		}
 	}
 }

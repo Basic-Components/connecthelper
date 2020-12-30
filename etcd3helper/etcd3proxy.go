@@ -3,7 +3,7 @@ package etcd3helper
 import (
 	"sync"
 
-	log "github.com/Basic-Components/loggerhelper"
+	log "github.com/Golang-Tools/loggerhelper"
 
 	"go.etcd.io/etcd/clientv3"
 )
@@ -62,9 +62,9 @@ func (proxy *etcd3Helper) SetConnect(cli *clientv3.Client) {
 	for _, cb := range proxy.callBacks {
 		err := cb(proxy.conn)
 		if err != nil {
-			log.Error(map[string]interface{}{"err": err}, "regist callback get error")
+			log.Error("regist callback get error", log.Dict{"err": err})
 		} else {
-			log.Info(nil, "regist callback done")
+			log.Info("regist callback done")
 		}
 	}
 }
